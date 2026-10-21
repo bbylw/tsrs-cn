@@ -1,0 +1,26 @@
+{
+  "name": "tsrs-cn",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "node scripts/typecheck.mjs --noEmit -p .",
+    "build": "node scripts/typecheck.mjs --noEmit -p . && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@tsrs/wasm": "^0.18.0-ts7.1.0-dev.20260929",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tailwindcss": "^4.3.3",
+    "tsrs": "^0.18.0-ts7.1.0-dev.20260929",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
+  }
+}
