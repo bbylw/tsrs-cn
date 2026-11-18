@@ -1,21 +1,11 @@
 import { useState } from 'react';
-import { ERROR_DIFFS, PROJECTS, SETTINGS } from '../data/bench';
-import type { SettingId } from '../data/bench';
-import { Cmd, Reveal, SectionHead } from './ui';
-
-type TileState = 'same' | 'version' | 'bug';
+import { BENCH_META, CONFORMANCE, PROJECTS } from '../data/bench';
+import { Reveal, SectionHead } from './ui';
 
 export function Consistency() {
-  const [setting, setSetting] = useState<SettingId>('default');
   const [open, setOpen] = useState<string | null>(null);
-  const diffs = ERROR_DIFFS[setting];
-
-  const tiles = PROJECTS.map((p) => {
-    const d = diffs.find((e) => e.project === p.name);
-    const state: TileState = !d ? 'same' : d.kind === 'bug' ? 'bug' : 'version';
-    return { project: p.name, state, diff: d };
-  });
-  const sameCount = tiles.filter((t) => t.state === 'same').length;
+  const openProject = PROJECTS.find((p) => p.id === open);
+  const totalErrors = PROJECTS.reduce((n, p) => n + p.errors, 0);
 
   return (
     <section id="consistency" className="relative py-16 md:py-24">
@@ -27,89 +17,47 @@ export function Consistency() {
           tag="Conformance"
           title={
             <>
-              <span className="text-acid">{sameCount} 个逐项相同</span>，其余的
-              <span className="text-warn">有解释</span>。
+              <span className="text-acid">19 / 19，诊断逐项相同。</span>
             </>
           }
           lead={
             <>
-              目标是 microsoft/TypeScript 的 main 分支，计划在 7.1 发布 100% 一致的稳定版。
-              在现有项目的测试中，尚未发现 tsrs 存在正确性错误。点带颜色的格子看差异明细。
+              最新一轮基准里，TypeScript、tsrs 与 tsrs --fast
+              在每个项目上报出的诊断——文件、位置、错误码—— 逐项一致，包括{' '}
+              {totalErrors.toLocaleString('en-US')} 条真实错误。目标是 TypeScript 7.1，发布 100%
+              一致的稳定版。点格子看每个项目的读数。
             </>
           }
         />
 
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <div>
-            <Reveal className="mb-4 flex flex-wrap items-center gap-4">
-              <div className="seg" role="group" aria-label="checker 线程数">
-                {SETTINGS.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    aria-pressed={setting === s.id}
-                    title={s.note}
-                    onClick={() => {
-                      setSetting(s.id);
-                      setOpen(null);
-                    }}
-                  >
-                    {s.rail}
-                  </button>
-                ))}
-              </div>
-              <p className="num flex flex-wrap gap-x-4 gap-y-1 text-xs text-ash">
-                <span>
-                  <i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-acid align-baseline" />
-                  相同
-                </span>
-                <span>
-                  <i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-warn align-baseline" />
-                  版本差异
-                </span>
-                <span>
-                  <i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-danger align-baseline" />
-                  真 bug
-                </span>
+            <Reveal className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <p className="num text-xs text-ash">
+                <i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-acid align-baseline" />
+                全部相同 · 数字为该项目错误数
               </p>
+              <p className="num text-xs text-ash">TypeScript = tsrs = tsrs --fast</p>
             </Reveal>
 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-              {tiles.map((t, i) => {
-                const clickable = t.state !== 'same';
-                const expanded = open === t.project;
-                const palette =
-                  t.state === 'same'
-                    ? 'border-acid/25 bg-acid/6 text-acid'
-                    : t.state === 'bug'
-                      ? 'border-danger/50 bg-danger/10 text-danger'
-                      : 'border-warn/40 bg-warn/8 text-warn';
+              {PROJECTS.map((p, i) => {
+                const expanded = open === p.id;
                 return (
-                  <Reveal key={t.project} delay={i * 30}>
+                  <Reveal key={p.id} delay={i * 25}>
                     <button
                       type="button"
-                      disabled={!clickable}
-                      onClick={() => setOpen(expanded ? null : t.project)}
-                      aria-expanded={clickable ? expanded : undefined}
-                      className={`flex w-full flex-col gap-1.5 rounded-lg border p-3 text-left transition-all ${palette} ${
-                        clickable ? 'cursor-pointer hover:-translate-y-0.5' : 'cursor-default'
-                      } ${expanded ? 'ring-2 ring-current' : ''}`}
+                      onClick={() => setOpen(expanded ? null : p.id)}
+                      aria-expanded={expanded}
+                      className={`flex w-full cursor-pointer flex-col gap-1.5 rounded-lg border border-acid/25 bg-acid/6 p-3 text-left text-acid transition-all hover:-translate-y-0.5 hover:border-acid/50 ${
+                        expanded ? 'ring-2 ring-acid/60' : ''
+                      }`}
                     >
                       <span className="num truncate text-[12px] font-semibold text-bone">
-                        {t.project}
+                        {p.name}
                       </span>
                       <span className="num text-[11px]">
-                        {t.state === 'same' && '✓ diff 为空'}
-                        {t.state === 'version' && t.diff && (
-                          <>
-                            Δ{' '}
-                            {t.diff.tsrs - t.diff.tsgo > 0
-                              ? `+${t.diff.tsrs - t.diff.tsgo}`
-                              : t.diff.tsrs - t.diff.tsgo}{' '}
-                            · 版本
-                          </>
-                        )}
-                        {t.state === 'bug' && '⚠ 位置不同 · bug'}
+                        ✓ {p.errors === 0 ? '0 错误 · 干净' : `${p.errors} 条错误 · 相同`}
                       </span>
                     </button>
                   </Reveal>
@@ -117,58 +65,54 @@ export function Consistency() {
               })}
             </div>
 
-            {open && (
-              <div className="panel mt-4 p-4" aria-live="polite">
-                {(() => {
-                  const d = diffs.find((e) => e.project === open)!;
-                  return (
-                    <div className="num flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-                      <span className="font-bold text-bone">{d.project}</span>
-                      <span className="text-tsgo">
-                        tsgo {d.tsgo.toLocaleString('en-US')} 个错误
-                      </span>
-                      <span className="text-flare">
-                        tsrs {d.tsrs.toLocaleString('en-US')} 个错误
-                      </span>
-                      <span className={d.kind === 'bug' ? 'font-bold text-danger' : 'text-warn'}>
-                        {d.kind === 'bug'
-                          ? '错误数同为 10,846，但位置不同——记在 tsrs 名下，没有别的解释。'
-                          : '差异来自移植目标（7.1-dev）与对照版本（7.0.2）的差别，可逐条复现。'}
-                      </span>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
+            <div className="panel mt-4 p-4" aria-live="polite">
+              {openProject ? (
+                <div className="num flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                  <span className="font-bold text-bone">{openProject.name}</span>
+                  <span className="text-tsgo">TypeScript {openProject.errors}</span>
+                  <span className="text-flare">tsrs {openProject.errors}</span>
+                  <span className="text-molten">--fast {openProject.errors}</span>
+                  <span className="font-semibold text-acid">
+                    {openProject.errors === 0
+                      ? '三者都干净，无诊断。'
+                      : '文件 · 位置 · 错误码逐项相同。'}
+                  </span>
+                </div>
+              ) : (
+                <p className="num text-sm text-ash">
+                  点任意一个项目，看三份编译器各自的错误读数。数据来自 {BENCH_META.date}{' '}
+                  的同一轮基准。
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-5">
             <Reveal delay={80} className="panel p-5">
-              <h3 className="mb-2 font-bold text-bone">差在版本，不在语义。</h3>
+              <h3 className="mb-2 font-bold text-bone">默认模式就是 TypeScript 的行为。</h3>
               <p className="text-sm leading-relaxed text-ash">
-                tsrs 移植的是 TypeScript 7.1 开发线上的提交，而这轮对照跑的是 tsgo 7.0.2。用{' '}
-                <code className="num rounded bg-coal px-1.5 py-0.5 text-[12px] text-molten">
-                  typescript@7.1.0-dev.20260930.4
-                </code>{' '}
-                构建，可以把 tsrs 的这批错误逐条复现。
+                0.20.0 起，默认沿用 pinned TypeScript 的 4 个 checker、Go 分配与 checker 历史、eager
+                members。TypeScript 本身对 checker 数量与文件顺序敏感的地方，tsrs
+                原样保留——一致性优先，加速靠 Rust 本身。
               </p>
             </Reveal>
-            <Reveal delay={140} className="panel p-5">
-              <h3 className="mb-2 font-bold text-bone">还有一处顺序问题。</h3>
-              <p className="mb-3 text-sm leading-relaxed text-ash">
-                固定的 Go 编译器会按解析、模块解析与检查的并行顺序，给出不同的诊断与调用栈；tsrs
-                默认对部分检查器历史做了规范化。要最接近的对照：
-              </p>
-              <Cmd text="tsrs --checkerAssignment go --noLazyMembers" />
-            </Reveal>
-            <Reveal delay={200} className="panel border-danger/30 p-5">
-              <h3 className="mb-2 font-bold text-danger">一个真 bug。</h3>
+            <Reveal delay={140} className="panel border-warn/30 p-5">
+              <h3 className="mb-2 font-bold text-warn">--fast 的已知边界。</h3>
               <p className="text-sm leading-relaxed text-ash">
-                16 线程下，17 个项目有 10 个完全相同；drizzle-orm 的错误数同为 10,846，但位置不同。
-                这一条记在 tsrs 名下，没有别的解释。切到「16」线程可以在左边看到它。
+                激进的 checker 分配与 lazy members 在少数依赖 checker
+                历史或推导深度的场景可能改变诊断， 上游在{' '}
+                <a
+                  className="link-u"
+                  href="https://github.com/oxc-project/tsrs/blob/main/notes/open-history-dependence.md"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  history-dependence 笔记
+                </a>{' '}
+                里逐个记录。本轮 19 个项目上 --fast 的诊断与 TypeScript 完全一致。
               </p>
             </Reveal>
-            <Reveal delay={260} className="panel p-5">
+            <Reveal delay={200} className="panel p-5">
               <h3 className="mb-2 font-bold text-bone">证据在仓库里。</h3>
               <p className="text-sm leading-relaxed text-ash">
                 哪些功能已支持、哪些还有差距，写在{' '}
@@ -188,11 +132,57 @@ export function Consistency() {
                 <code className="num rounded bg-coal px-1.5 py-0.5 text-[12px] text-fog">
                   --showConfig
                 </code>{' '}
-                暂不支持。
+                暂不支持（退出码 5），Windows 上{' '}
+                <code className="num rounded bg-coal px-1.5 py-0.5 text-[12px] text-fog">
+                  --watch
+                </code>{' '}
+                也还没有。
               </p>
             </Reveal>
           </div>
         </div>
+
+        <Reveal className="mt-12">
+          <p className="tag mb-5">仓库里的六份证据</p>
+        </Reveal>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {CONFORMANCE.map((c, i) => (
+            <Reveal key={c.id} delay={i * 60} className="panel p-5">
+              <p className="num mb-2 text-[11px] tracking-wider text-ash uppercase">{c.label}</p>
+              <p className="num mb-1 text-3xl font-bold text-bone">
+                {c.big}
+                <span className="ml-2 text-sm font-normal text-molten">{c.unit}</span>
+              </p>
+              <p className="text-[13px] leading-relaxed text-ash">{c.detail}</p>
+            </Reveal>
+          ))}
+        </div>
+        <Reveal className="mt-6">
+          <p className="num text-xs leading-relaxed text-ash">
+            来源：
+            <a className="link-u" href={BENCH_META.source} rel="noreferrer" target="_blank">
+              bench/RESULTS.md
+            </a>{' '}
+            ·{' '}
+            <a
+              className="link-u"
+              href="https://github.com/oxc-project/tsrs/blob/main/docs/COMPATIBILITY.md"
+              rel="noreferrer"
+              target="_blank"
+            >
+              docs/COMPATIBILITY.md
+            </a>{' '}
+            ·{' '}
+            <a
+              className="link-u"
+              href="https://github.com/oxc-project/tsrs/blob/main/tasks/determinism/README.md"
+              rel="noreferrer"
+              target="_blank"
+            >
+              tasks/determinism
+            </a>
+          </p>
+        </Reveal>
       </div>
     </section>
   );

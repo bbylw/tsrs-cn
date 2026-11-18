@@ -88,14 +88,18 @@ export function SectionHead({
 
 export function Legend() {
   return (
-    <p className="num flex items-center gap-5 text-xs text-ash">
+    <p className="num flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-ash">
       <span className="flex items-center gap-2">
         <i className="inline-block h-[3px] w-4 rounded-full bg-gradient-to-r from-cobalt to-tsgo" />
-        tsgo
+        TypeScript 7.1 beta
       </span>
       <span className="flex items-center gap-2">
         <i className="inline-block h-[3px] w-4 rounded-full bg-gradient-to-r from-ember to-molten" />
         tsrs
+      </span>
+      <span className="flex items-center gap-2">
+        <i className="inline-block h-[3px] w-4 rounded-full bg-gradient-to-r from-molten to-acid" />
+        tsrs --fast
       </span>
     </p>
   );

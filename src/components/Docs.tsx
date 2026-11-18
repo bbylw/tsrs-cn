@@ -1,101 +1,56 @@
 import { Reveal, SectionHead } from './ui';
+import { docHref } from '../lib/router';
 
-const DOCS = [
+const GROUPS = [
   {
-    group: '命令行',
+    group: '入门',
     accent: 'text-flare',
+    desc: '从零到第一次类型检查。',
     rows: [
-      {
-        name: 'CLI 用法与内存调优',
-        val: 'docs/USAGE.md',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/docs/USAGE.md',
-      },
-      {
-        name: '发布说明',
-        val: 'docs/STATUS.md',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/docs/STATUS.md',
-      },
+      { name: 'tsrs 是什么', sub: '定位、现状与边界', slug: 'introduction' },
+      { name: '安装与第一次运行', sub: '四种包管理器 + 版本策略', slug: 'install' },
+      { name: 'CLI 用法', sub: '标志、内存调优、退出码', slug: 'cli' },
+      { name: '--fast 性能预设', sub: '一个开关，五类默认值', slug: 'fast' },
     ],
   },
   {
-    group: '编辑器与 API',
-    accent: 'text-tsgo',
-    rows: [
-      {
-        name: '编辑器配置',
-        val: 'docs/LSP.md',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/docs/LSP.md#editor-setup',
-      },
-      {
-        name: 'Node API',
-        sub: '接口仍在变动',
-        val: 'docs/NODE_API.md',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/docs/NODE_API.md',
-      },
-      {
-        name: 'WebAssembly',
-        sub: 'Node 与浏览器，wasm32-wasip1',
-        val: '@tsrs/wasm',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/npm/tsrs-wasm/README.md',
-      },
-    ],
-  },
-  {
-    group: '研究与证据',
+    group: '证据',
     accent: 'text-acid',
+    desc: '每个数字都可以交互复验。',
     rows: [
-      {
-        name: '基准测试与方法论',
-        val: 'bench/README.md',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/bench/README.md',
-      },
-      {
-        name: '工程笔记',
-        val: 'notes/README.md',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/notes/README.md',
-      },
-      {
-        name: '兼容性与证据',
-        val: 'COMPATIBILITY.md',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/docs/COMPATIBILITY.md',
-      },
+      { name: '性能基准', sub: '19 个项目 × 3 份编译器', slug: 'benchmarks' },
+      { name: '一致性', sub: '19/19 诊断逐项相同', slug: 'consistency' },
+      { name: '增量编辑', sub: '--watch 的毫秒级回路', slug: 'watch' },
     ],
   },
   {
-    group: '参与',
-    accent: 'text-info',
+    group: '集成',
+    accent: 'text-tsgo',
+    desc: '编辑器、Node、浏览器与 lint。',
     rows: [
-      {
-        name: 'issue 追踪器',
-        sub: '附一个最小可复现示例',
-        val: 'github.com/oxc-project/tsrs',
-        href: 'https://github.com/oxc-project/tsrs/issues',
-      },
-      {
-        name: '贡献指南',
-        sub: '从源码构建、跑测试套件',
-        val: 'CONTRIBUTING.md',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/CONTRIBUTING.md',
-      },
-      {
-        name: '行为准则',
-        val: 'CODE_OF_CONDUCT.md',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/CODE_OF_CONDUCT.md',
-      },
-      {
-        name: '安全策略',
-        sub: '报告漏洞走这条线',
-        val: 'SECURITY.md',
-        href: 'https://github.com/oxc-project/tsrs/blob/main/SECURITY.md',
-      },
-      {
-        name: '浏览器 playground',
-        sub: '不装也能检查、也能生成代码',
-        val: 'tsrs-playground.void.app',
-        href: 'https://tsrs-playground.void.app',
-      },
+      { name: '编辑器（LSP）', sub: 'VS Code / Neovim', slug: 'editors' },
+      { name: 'Node API', sub: '968/968 测试通过', slug: 'api' },
+      { name: 'WebAssembly', sub: 'wasm32-wasip1，无二进制平台', slug: 'wasm' },
+      { name: 'Type-aware lint', sub: 'tsrs-lint × Oxlint · 61 条规则', slug: 'lint' },
     ],
   },
+  {
+    group: '项目',
+    accent: 'text-info',
+    desc: '路线、发布与参与方式。',
+    rows: [
+      { name: '状态与发布', sub: '发布节奏与已知限制', slug: 'status' },
+      { name: '参与贡献', sub: '报 bug 不发 PR · 行为准则', slug: 'contributing' },
+      { name: '浏览器 playground', sub: '不装也能跑', slug: 'play' },
+    ],
+  },
+];
+
+const UPSTREAM = [
+  { name: '上游仓库', href: 'https://github.com/oxc-project/tsrs' },
+  { name: 'issue 追踪器', href: 'https://github.com/oxc-project/tsrs/issues' },
+  { name: '上游文档目录', href: 'https://github.com/oxc-project/tsrs/tree/main/docs' },
+  { name: '基准方法论', href: 'https://github.com/oxc-project/tsrs/blob/main/bench/README.md' },
 ];
 
 export function Docs() {
@@ -106,36 +61,41 @@ export function Docs() {
       </div>
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHead
-          tag="Docs & Links"
+          tag="Docs"
           title={
             <>
-              文档与<span className="ice-text">入口。</span>
+              文档，<span className="ice-text">就在站内。</span>
             </>
           }
+          lead="跟随上游 oxc-project/tsrs 同步整理的中文文档：入门、证据、集成与项目四组，侧栏检索、逐页互链，每个数字都标注上游来源。"
         />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {DOCS.map((g, gi) => (
+          {GROUPS.map((g, gi) => (
             <Reveal key={g.group} delay={gi * 70} className="panel p-5">
-              <p className={`num mb-3 text-[11px] tracking-[0.2em] uppercase ${g.accent}`}>
-                {g.group}
-              </p>
+              <div className="mb-3 flex items-baseline justify-between gap-3">
+                <p className={`num text-[11px] tracking-[0.2em] uppercase ${g.accent}`}>
+                  {g.group}
+                </p>
+                <p className="text-xs text-ash">{g.desc}</p>
+              </div>
               <div className="divide-y divide-seam/60">
                 {g.rows.map((r) => (
                   <a
-                    key={r.name}
-                    href={r.href}
-                    rel="noreferrer"
-                    target="_blank"
+                    key={r.slug}
+                    href={docHref(r.slug)}
                     className="group flex items-baseline justify-between gap-4 py-3 transition-transform hover:translate-x-1"
                   >
                     <span className="min-w-0">
                       <span className="text-[15px] font-semibold text-bone group-hover:text-flare">
                         {r.name}
                       </span>
-                      {r.sub && <span className="block text-xs text-ash">{r.sub}</span>}
+                      <span className="block text-xs text-ash">{r.sub}</span>
                     </span>
-                    <span className="num shrink-0 text-right text-xs text-ash group-hover:text-fog">
-                      {r.val} ↗
+                    <span
+                      className="num shrink-0 text-ash transition-colors group-hover:text-flare"
+                      aria-hidden="true"
+                    >
+                      →
                     </span>
                   </a>
                 ))}
@@ -143,6 +103,23 @@ export function Docs() {
             </Reveal>
           ))}
         </div>
+        <Reveal delay={120} className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
+          <span className="num text-[11px] tracking-[0.2em] text-ash uppercase">上游直达</span>
+          {UPSTREAM.map((u) => (
+            <a
+              key={u.name}
+              className="link-u text-sm font-semibold"
+              href={u.href}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {u.name} ↗
+            </a>
+          ))}
+          <a className="btn-ghost ml-auto !px-4 !py-2 text-sm" href={docHref('introduction')}>
+            打开文档 →
+          </a>
+        </Reveal>
       </div>
     </section>
   );

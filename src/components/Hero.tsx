@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { PROJECTS, SETTINGS, fmtRatio, fmtTime } from '../data/bench';
-import type { SettingId } from '../data/bench';
+import { PROJECTS, fmtRatio, fmtTime } from '../data/bench';
 import { prefersReducedMotion, useInView, useRace } from '../lib/hooks';
 import { CopyButton } from './ui';
 
 const RACE_IDS = [
-  'mui-docs',
+  'mikro-orm',
+  't3code-server',
   'vscode',
   'next-packages-next',
-  't3code-server',
-  'storybook',
+  'mui-docs',
   'webpack',
 ];
 const RACE_PROJECTS = RACE_IDS.map((id) => PROJECTS.find((p) => p.id === id)!);
@@ -99,10 +98,8 @@ function Sparks() {
 
 function RaceTerminal() {
   const [projIdx, setProjIdx] = useState(0);
-  const [setting, setSetting] = useState<SettingId>('default');
   const project = RACE_PROJECTS[projIdx];
-  const run = project.runs[setting];
-  const race = useRace(run.tsgo.t, run.tsrs.t, 4.2);
+  const race = useRace([project.ts.t, project.rs.t, project.fast.t], 4.2);
   const { ref, inView } = useInView<HTMLDivElement>();
   const started = useRef(false);
   const replayRef = useRef(race.replay);
@@ -115,15 +112,16 @@ function RaceTerminal() {
     }
   }, [inView]);
 
-  const change = (idx: number, s: SettingId) => {
+  const change = (idx: number) => {
     setProjIdx(idx);
-    setSetting(s);
-    // data changed; replay on next paint with fresh durations
     requestAnimationFrame(() => replayRef.current());
   };
 
-  const shownGo = Math.min(race.elapsed, run.tsgo.t);
-  const shownRs = Math.min(race.elapsed, run.tsrs.t);
+  const lanes = [
+    { name: 'TypeScript 7.1 beta', cls: 'go', t: project.ts.t, color: 'text-tsgo', i: 0 },
+    { name: 'tsrs', cls: 'rs', t: project.rs.t, color: 'text-flare', i: 1 },
+    { name: 'tsrs --fast', cls: 'fast', t: project.fast.t, color: 'text-molten', i: 2 },
+  ];
 
   return (
     <div ref={ref} className="panel panel-glow overflow-hidden">
@@ -146,7 +144,7 @@ function RaceTerminal() {
           项目
           <select
             value={projIdx}
-            onChange={(e) => change(Number(e.target.value), setting)}
+            onChange={(e) => change(Number(e.target.value))}
             aria-label="选择项目"
           >
             {RACE_PROJECTS.map((p, i) => (
@@ -156,75 +154,48 @@ function RaceTerminal() {
             ))}
           </select>
         </label>
-        <div className="seg" role="group" aria-label="checker 线程数">
-          {SETTINGS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              aria-pressed={setting === s.id}
-              title={s.note}
-              onClick={() => change(projIdx, s.id)}
-            >
-              {s.rail}
-            </button>
-          ))}
-        </div>
+        <span className="num text-[11px] text-ash">默认设置 · 各编译器自选 checker 数 · 14 核</span>
       </div>
 
-      <div className="space-y-5 px-4 py-5 md:px-6">
+      <div className="space-y-4 px-4 py-5 md:px-6">
         <p className="num text-xs text-ash">
-          <span className="text-ember">$</span> tsrs --noEmit -p {project.name}
-          {!race.goDone && <span className="caret ml-1" />}
+          <span className="text-ember">$</span> tsrs --noEmit --fast -p {project.name}
+          {!race.allDone && <span className="caret ml-1" />}
         </p>
 
-        {(
-          [
-            {
-              name: 'tsgo',
-              cls: 'go',
-              pct: race.goPct,
-              done: race.goDone,
-              t: run.tsgo.t,
-              shown: shownGo,
-              color: 'text-tsgo',
-            },
-            {
-              name: 'tsrs',
-              cls: 'rs',
-              pct: race.rsPct,
-              done: race.rsDone,
-              t: run.tsrs.t,
-              shown: shownRs,
-              color: 'text-flare',
-            },
-          ] as const
-        ).map((lane) => (
-          <div key={lane.name}>
-            <div className="num mb-1.5 flex items-baseline justify-between text-sm">
-              <span className={`font-bold ${lane.color}`}>{lane.name}</span>
-              <span
-                className={lane.done ? (lane.cls === 'rs' ? 'text-acid' : 'text-fog') : 'text-ash'}
-              >
-                {lane.done ? `✓ 完成 · ${fmtTime(lane.t)}` : `${fmtTime(lane.shown)} …`}
-              </span>
+        {lanes.map((lane) => {
+          const done = race.done[lane.i];
+          const shown = Math.min(race.elapsed, lane.t);
+          return (
+            <div key={lane.name}>
+              <div className="num mb-1.5 flex items-baseline justify-between gap-2 text-sm">
+                <span className={`font-bold ${lane.color}`}>{lane.name}</span>
+                <span
+                  className={done ? (lane.cls === 'go' ? 'text-fog' : 'text-acid') : 'text-ash'}
+                >
+                  {done ? `✓ 完成 · ${fmtTime(lane.t)}` : `${fmtTime(shown)} …`}
+                </span>
+              </div>
+              <div className="lane h-4">
+                <div
+                  className={`lane-fill ${lane.cls} ${!done && race.running ? 'live' : ''}`}
+                  style={{ width: `${race.pct[lane.i]}%` }}
+                />
+              </div>
             </div>
-            <div className="lane h-4">
-              <div
-                className={`lane-fill ${lane.cls} ${!lane.done && race.running ? 'live' : ''}`}
-                style={{ width: `${lane.pct}%` }}
-              />
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-seam pt-4">
-          <p className="num text-xs text-ash">{SETTINGS.find((s) => s.id === setting)?.note}</p>
+          <p className="num text-xs text-ash">
+            {project.name} · 诊断三者逐项相同（{project.errors} 条错误）
+          </p>
           <p
             className={`num rounded-lg px-3 py-1.5 text-sm font-bold transition-all ${
-              race.rsDone ? 'bg-ember/15 text-molten opacity-100' : 'opacity-40 text-ash'
+              race.done[2] ? 'bg-ember/15 text-molten opacity-100' : 'opacity-40 text-ash'
             }`}
           >
-            快 {fmtRatio(run.tsrs.rt)}
+            --fast 快 {fmtRatio(project.rtf)}
           </p>
         </div>
       </div>
@@ -247,7 +218,7 @@ export function Hero() {
       <div className="relative mx-auto grid grid-cols-1 max-w-7xl items-center gap-12 px-5 md:px-8 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
         <div>
           <p className="stage-in tag mb-6" style={{ '--sd': '0ms' } as CSSProperties}>
-            microsoft/TypeScript → Rust
+            TypeScript 7 · Rust 直替
           </p>
           <h1 className="hero-h stage-in" style={{ '--sd': '90ms' } as CSSProperties}>
             同一份语义，
@@ -258,10 +229,10 @@ export function Hero() {
             className="stage-in mt-6 max-w-xl text-[15px] leading-relaxed text-fog md:text-lg"
             style={{ '--sd': '200ms' } as CSSProperties}
           >
-            tsrs 是 TypeScript 编译器与语言服务的 Rust 移植。命令行、配置、诊断都与{' '}
-            <b className="text-bone">tsc</b> 相同——默认设置下的 17 个大型项目：快{' '}
-            <b className="num nw text-molten">4.20×–16.87×</b>，峰值内存少{' '}
-            <b className="num text-molten">2.17×–4.61×</b>。
+            tsrs 是 TypeScript 7 编译器与语言服务器的 Rust 直替。默认模式与 pinned TypeScript
+            行为一致；<b className="num text-bone">--fast</b> 预设再提速——19 个大型项目上快{' '}
+            <b className="num nw text-molten">1.71×–6.62×</b>，峰值内存少{' '}
+            <b className="num nw text-molten">1.70×–2.75×</b>，诊断逐项相同。
           </p>
 
           <div
@@ -297,15 +268,15 @@ export function Hero() {
             style={{ '--sd': '430ms' } as CSSProperties}
           >
             <span className="num select-none text-ember">$</span>
-            <code className="num flex-1 text-sm text-bone">pnpm add -D tsrs</code>
-            <CopyButton text="pnpm add -D tsrs" />
+            <code className="num flex-1 text-sm text-bone">pnpm add -D tsrs@next</code>
+            <CopyButton text="pnpm add -D tsrs@next" />
           </div>
 
           <p
             className="stage-in num mt-6 text-xs text-ash"
             style={{ '--sd': '520ms' } as CSSProperties}
           >
-            Apache-2.0 · 目标 TypeScript 7.1 · 100% 一致性路线
+            7.1.0-beta.tsrs2 · Apache-2.0 · 目标 TypeScript 7.1 · 100% 一致性路线
           </p>
         </div>
 

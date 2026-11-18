@@ -1,27 +1,34 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { docHref } from '../lib/router';
 import { Cmd, CopyButton, Reveal, SectionHead } from './ui';
 
 const PMS = ['pnpm', 'npm', 'bun', 'yarn'] as const;
 type Pm = (typeof PMS)[number];
 
 const addCmd = (pm: Pm) =>
-  pm === 'npm' ? 'npm i -D tsrs' : pm === 'yarn' ? 'yarn add -D tsrs' : `${pm} add -D tsrs`;
+  pm === 'npm'
+    ? 'npm i -D tsrs@next'
+    : pm === 'yarn'
+      ? 'yarn add -D tsrs@next'
+      : `${pm} add -D tsrs@next`;
 const runCmd = (pm: Pm) =>
   pm === 'bun'
-    ? 'bunx tsrs --noEmit'
+    ? 'bunx tsrs --noEmit --fast'
     : pm === 'yarn'
-      ? 'yarn tsrs --noEmit'
-      : `${pm} exec tsrs --noEmit`;
+      ? 'yarn tsrs --noEmit --fast'
+      : `${pm} exec tsrs --noEmit --fast`;
 
 const FLAGS: { code: string; desc: string; ok: boolean }[] = [
-  { code: '--noEmit', desc: '只检查不产物', ok: true },
-  { code: '-p', desc: '指定项目', ok: true },
-  { code: '--watch', desc: '增量监视', ok: true },
-  { code: '--checkers N', desc: '线程数', ok: true },
-  { code: '--checkerAssignment go', desc: '对齐诊断顺序', ok: true },
-  { code: '--noLazyMembers', desc: '关闭惰性成员', ok: true },
-  { code: '--init', desc: '暂不支持', ok: false },
-  { code: '--showConfig', desc: '暂不支持', ok: false },
+  { code: '--fast', desc: '性能预设（或 TSRS_FAST=1）', ok: true },
+  { code: '--checkers N', desc: 'checker 线程数 · 默认 4', ok: true },
+  { code: '--singleThreaded', desc: '单线程 · 最严格对照', ok: true },
+  { code: '--checkerAssignment locality', desc: '局部性分配 + 工作窃取', ok: true },
+  { code: '--checkerCostCache <file>', desc: '记住每个文件的耗时', ok: true },
+  { code: '--maxMemory 12G', desc: '内存上限（--noEmit）', ok: true },
+  { code: '--lazyMembers / --noLazyMembers', desc: '惰性成员单独开关', ok: true },
+  { code: 'TSRS_LAZY_DTS=1', desc: '惰性 .d.ts 解析', ok: true },
+  { code: '--init / --showConfig', desc: '暂不支持 · 退出码 5', ok: false },
+  { code: '--watch（Windows）', desc: '暂不支持', ok: false },
 ];
 
 const SAMPLE = [
@@ -101,7 +108,7 @@ function SplitDemo() {
 
           {phase === 'idle' && (
             <p className="num py-8 text-center text-sm text-ash">
-              按下「运行 tsrs」，看它报出和 tsc 逐字相同的三行诊断。
+              按下「运行 tsrs」，看它报出和 TypeScript 逐字相同的三行诊断。
             </p>
           )}
 
@@ -133,7 +140,7 @@ function SplitDemo() {
                     diff
                   </span>
                   <p className="text-sm font-semibold text-acid">
-                    空的。三行输出与 tsc 7.0.2 逐字相同。
+                    空的。三行输出与 TypeScript 7.1 beta 逐项相同。
                   </p>
                 </div>
               )}
@@ -141,7 +148,7 @@ function SplitDemo() {
           )}
 
           <p className="mt-4 text-xs leading-relaxed text-ash">
-            同一份 sample.ts、同一份 tsconfig，分别由 tsc 7.0.2 与 tsrs 0.18.0 跑出来。
+            同一份 sample.ts、同一份 tsconfig。最新基准的 19 个项目上，三份编译器的诊断全部一致。
           </p>
         </div>
       </div>
@@ -165,7 +172,7 @@ export function Quickstart() {
               从装上，<span className="ice-text">到跑通。</span>
             </>
           }
-          lead="它是替代品，不是新工具：同一条命令、同一份 tsconfig，把可执行文件换成 tsrs。编辑器里通过 LSP 接上。"
+          lead="它是替代品，不是新工具：同一条命令、同一份 tsconfig，把可执行文件换成 tsrs。默认行为对齐 TypeScript；加 --fast 打开性能预设。编辑器里通过 LSP 接上。"
         />
 
         <Reveal className="mb-6 flex items-center gap-3">
@@ -185,9 +192,10 @@ export function Quickstart() {
             <h3 className="mb-3 text-lg font-bold text-bone">先装上它。</h3>
             <Cmd text={addCmd(pm)} />
             <p className="mt-4 text-sm leading-relaxed text-ash">
-              包本身只是一个入口，真正的二进制按平台分发：darwin-arm64、linux-x64、linux-arm64，各带
-              gnu 与 musl 两版。没有预编译二进制的平台，用 <b className="text-fog">@tsrs/wasm</b>{' '}
-              顶上去。
+              <code className="num text-molten">@next</code> 指向 7.1.0-beta.tsrs2。包本身只是入口，
+              二进制按平台分发：macOS arm64/x64、Linux x64/arm64（gnu 与 musl）、Windows
+              x64/arm64，共八个原生包。没有预编译二进制的平台，用{' '}
+              <b className="text-fog">@tsrs/wasm</b> 顶上去。
             </p>
           </Reveal>
 
@@ -195,7 +203,9 @@ export function Quickstart() {
             <p className="num mb-1 text-4xl font-bold text-seam2">02</p>
             <h3 className="mb-3 text-lg font-bold text-bone">再把 tsc 换掉。</h3>
             <Cmd text={runCmd(pm)} />
-            <p className="mt-4 mb-2 text-sm leading-relaxed text-ash">参数沿用 tsc 的那一套：</p>
+            <p className="mt-4 mb-2 text-sm leading-relaxed text-ash">
+              参数沿用 tsc 的那一套，另有 tsrs 自己的开关：
+            </p>
             <ul className="grid grid-cols-1 gap-1.5 text-[12.5px] sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               {FLAGS.map((f) => (
                 <li key={f.code} className="flex flex-col">
@@ -219,12 +229,15 @@ export function Quickstart() {
               <CopyButton text="diff <(tsc --noEmit) <(tsrs --noEmit)" />
             </div>
             <p className="mt-4 text-sm leading-relaxed text-ash">
-              默认设置下，<b className="text-fog">9 个项目的 diff 是空的</b>。另外 8
-              个也不是「哪里算错了」，而是移植目标与对照版本的差别——上一节把它们逐条列了出来。
+              最新一轮基准里，<b className="text-fog">19 个项目的 diff 全是空的</b>
+              ——包括 webpack 的 840 条、vscode 的 371 条真实错误，文件、位置、错误码逐项相同。
             </p>
             <p className="mt-3 text-sm leading-relaxed text-ash">
-              检查器按核心切分：默认最多 16 个线程，超过之后用一半核心、上限
-              32。线程加上去，时间掉下来，内存基本不涨。
+              还跑 Oxlint？tsrs-lint 让 type-aware lint 与类型检查一次跑完，
+              <a className="link-u font-semibold" href={docHref('lint')}>
+                看快速模式与 lint
+              </a>
+              。
             </p>
           </Reveal>
         </div>

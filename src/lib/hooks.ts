@@ -82,14 +82,17 @@ export function useInView<T extends HTMLElement>(rootMargin = '0px') {
 }
 
 /**
- * Replays a tsgo-vs-tsrs race on a compressed clock: tsgo always finishes in
- * `wallSeconds` of real time, tsrs finishes proportionally earlier, exactly
- * matching the published ratio.
+ * Replays an N-lane compiler race on a compressed clock: the slowest lane always
+ * finishes in `wallSeconds` of real time, every other lane finishes proportionally
+ * earlier, exactly matching the published ratios.
  */
-export function useRace(goSeconds: number, rsSeconds: number, wallSeconds = 4) {
+export function useRace(lanes: number[], wallSeconds = 4) {
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
   const rafRef = useRef(0);
+  const lanesRef = useRef(lanes);
+  lanesRef.current = lanes;
+  const slowest = Math.max(...lanes);
 
   const stop = () => {
     cancelAnimationFrame(rafRef.current);
@@ -98,21 +101,22 @@ export function useRace(goSeconds: number, rsSeconds: number, wallSeconds = 4) {
 
   const replay = () => {
     stop();
+    const total = Math.max(...lanesRef.current);
     if (prefersReducedMotion()) {
-      setElapsed(goSeconds);
+      setElapsed(total);
       setRunning(false);
       return;
     }
     setElapsed(0);
     setRunning(true);
-    const speed = goSeconds / wallSeconds;
+    const speed = total / wallSeconds;
     let last = performance.now();
     let sim = 0;
     const tick = (now: number) => {
       sim += ((now - last) / 1000) * speed;
       last = now;
-      if (sim >= goSeconds) {
-        setElapsed(goSeconds);
+      if (sim >= total) {
+        setElapsed(total);
         setRunning(false);
         rafRef.current = 0;
         return;
@@ -129,10 +133,9 @@ export function useRace(goSeconds: number, rsSeconds: number, wallSeconds = 4) {
     elapsed,
     running,
     replay,
-    goDone: elapsed >= goSeconds,
-    rsDone: elapsed >= rsSeconds,
-    goPct: Math.min(elapsed / goSeconds, 1) * 100,
-    rsPct: Math.min(elapsed / rsSeconds, 1) * 100,
+    done: lanes.map((s) => elapsed >= s),
+    pct: lanes.map((s) => Math.min(elapsed / s, 1) * 100),
+    allDone: elapsed >= slowest,
   };
 }
 

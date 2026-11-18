@@ -1,517 +1,504 @@
 // Every figure on this page comes from these tables.
-// Source: oxc-project/tsrs · bench/RESULTS.md (2026-10-16, commit d57703ab5f07, PGO release build)
-// Times are wall-clock seconds; memory is peak RSS in GiB. Ratios are the published ones, computed
-// there from unrounded measurements, so they are stored rather than re-derived from the rounded values.
-
-export type SettingId = 'default' | 't4' | 't8' | 't16';
-
-export type Setting = {
-  id: SettingId;
-  label: string;
-  rail: string;
-  note: string;
-};
-
-export const SETTINGS: Setting[] = [
-  { id: 'default', label: '默认', rail: '默认', note: 'tsrs 走默认设置，开了 16 个 checker 线程' },
-  { id: 't4', label: '4 线程', rail: '4', note: 'tsgo 与 tsrs 各 4 个 checker 线程' },
-  { id: 't8', label: '8 线程', rail: '8', note: 'tsgo 与 tsrs 各 8 个 checker 线程' },
-  { id: 't16', label: '16 线程', rail: '16', note: 'tsgo 与 tsrs 各 16 个 checker 线程' },
-];
+// Source: oxc-project/tsrs · bench/RESULTS.md (measured 2026-10-28, npm release binaries:
+// TypeScript 7.1.0-beta + tsrs 0.20.1-ts7.1.0-beta, Apple M3 Max 14 cores / 36 GB / Darwin arm64,
+// Hyperfine 2.0.0, medians of 10 interleaved runs — 5 for TypeScript; 0 of 475 runs contended).
+// Times are wall-clock seconds; memory is peak RSS in GiB (MiB values converted /1024).
+// Ratios are the published ones, computed upstream from unrounded measurements.
 
 export type Cell = {
   /** wall time, seconds */
   t: number;
   /** peak RSS, GiB */
   m: number;
-  /** published ratio against the same run of tsgo */
-  rt: number;
-  rm: number;
 };
 
 export type Project = {
   id: string;
   name: string;
-  runs: Record<SettingId, { tsgo: Cell; tsrs: Cell }>;
+  /** TypeScript 7.1 beta (the Go compiler, npm @typescript/typescript-*) */
+  ts: Cell;
+  /** tsrs, default mode: pinned TypeScript's 4 checkers, Go assignment/history, eager members */
+  rs: Cell;
+  /** tsrs --fast: adaptive checkers, locality + work stealing, caches, lazy members */
+  fast: Cell;
+  /** published ratios vs TypeScript: time (rs / fast) and memory (rs / fast) */
+  rt: number;
+  rtf: number;
+  rm: number;
+  rmf: number;
+  /** error count — identical across all three compilers */
+  errors: number;
+};
+
+export const BENCH_META = {
+  date: '2026-10-28',
+  machine: 'Apple M3 Max · 14 核 · 36 GB · Darwin arm64',
+  versions: 'TypeScript 7.1.0-beta · tsrs 0.20.1-ts7.1.0-beta（npm 发布二进制）',
+  method: 'Hyperfine 2.0.0 · 10 次交错取中位（TypeScript 5 次）· 475 次运行 0 次争用',
+  cmd: '-p <project> --noEmit --incremental false --pretty false',
+  source: 'https://github.com/oxc-project/tsrs/blob/main/bench/RESULTS.md',
 };
 
 export const PROJECTS: Project[] = [
   {
-    id: 'mui-docs',
-    name: 'mui-docs',
-    runs: {
-      default: {
-        tsgo: { t: 12.66, m: 7.39, rt: 16.87, rm: 4.61 },
-        tsrs: { t: 0.75, m: 1.6, rt: 16.87, rm: 4.61 },
-      },
-      t4: {
-        tsgo: { t: 12.69, m: 7.61, rt: 11.81, rm: 7.24 },
-        tsrs: { t: 1.07, m: 1.05, rt: 11.81, rm: 7.24 },
-      },
-      t8: {
-        tsgo: { t: 12.83, m: 11.8, rt: 13.65, rm: 8.92 },
-        tsrs: { t: 0.94, m: 1.32, rt: 13.65, rm: 8.92 },
-      },
-      t16: {
-        tsgo: { t: 12.36, m: 13.22, rt: 16.07, rm: 8.23 },
-        tsrs: { t: 0.77, m: 1.61, rt: 16.07, rm: 8.23 },
-      },
-    },
-  },
-  {
-    id: 'mikro-orm',
-    name: 'mikro-orm',
-    runs: {
-      default: {
-        tsgo: { t: 11.16, m: 6.71, rt: 15.16, rm: 3.41 },
-        tsrs: { t: 0.74, m: 1.97, rt: 15.16, rm: 3.41 },
-      },
-      t4: {
-        tsgo: { t: 11.11, m: 6.45, rt: 6.87, rm: 4.61 },
-        tsrs: { t: 1.62, m: 1.4, rt: 6.87, rm: 4.61 },
-      },
-      t8: {
-        tsgo: { t: 8.62, m: 8.76, rt: 8.43, rm: 5.38 },
-        tsrs: { t: 1.02, m: 1.63, rt: 8.43, rm: 5.38 },
-      },
-      t16: {
-        tsgo: { t: 9.24, m: 11.94, rt: 12.82, rm: 6.06 },
-        tsrs: { t: 0.72, m: 1.97, rt: 12.82, rm: 6.06 },
-      },
-    },
-  },
-  {
-    id: 'next-packages-next',
-    name: 'next-packages-next',
-    runs: {
-      default: {
-        tsgo: { t: 3.05, m: 1.73, rt: 14.75, rm: 2.55 },
-        tsrs: { t: 0.21, m: 0.6787, rt: 14.75, rm: 2.55 },
-      },
-      t4: {
-        tsgo: { t: 3.1, m: 1.76, rt: 6.73, rm: 3.22 },
-        tsrs: { t: 0.46, m: 0.5479, rt: 6.73, rm: 3.22 },
-      },
-      t8: {
-        tsgo: { t: 2.7, m: 2.03, rt: 9.2, rm: 3.38 },
-        tsrs: { t: 0.29, m: 0.6006, rt: 9.2, rm: 3.38 },
-      },
-      t16: {
-        tsgo: { t: 2.59, m: 2.49, rt: 12.59, rm: 3.65 },
-        tsrs: { t: 0.21, m: 0.6807, rt: 12.59, rm: 3.65 },
-      },
-    },
+    id: 't3code-server',
+    name: 't3code-server',
+    ts: { t: 7.2, m: 4.36 },
+    rs: { t: 1.73, m: 1.82 },
+    fast: { t: 1.19, m: 1.95 },
+    rt: 4.17,
+    rtf: 6.05,
+    rm: 2.4,
+    rmf: 2.24,
+    errors: 6,
   },
   {
     id: 'vscode',
     name: 'vscode',
-    runs: {
-      default: {
-        tsgo: { t: 11.1, m: 7.48, rt: 13.55, rm: 3.57 },
-        tsrs: { t: 0.82, m: 2.1, rt: 13.55, rm: 3.57 },
-      },
-      t4: {
-        tsgo: { t: 10.94, m: 7.49, rt: 4.95, rm: 4.16 },
-        tsrs: { t: 2.21, m: 1.8, rt: 4.95, rm: 4.16 },
-      },
-      t8: {
-        tsgo: { t: 7.71, m: 8.17, rt: 5.92, rm: 4.23 },
-        tsrs: { t: 1.3, m: 1.93, rt: 5.92, rm: 4.23 },
-      },
-      t16: {
-        tsgo: { t: 6.73, m: 9.42, rt: 8.32, rm: 4.49 },
-        tsrs: { t: 0.81, m: 2.1, rt: 8.32, rm: 4.49 },
-      },
-    },
+    ts: { t: 5.27, m: 5.46 },
+    rs: { t: 2.01, m: 2.36 },
+    fast: { t: 0.91, m: 1.99 },
+    rt: 2.63,
+    rtf: 5.8,
+    rm: 2.32,
+    rmf: 2.75,
+    errors: 371,
   },
   {
-    id: 'storybook',
-    name: 'storybook',
-    runs: {
-      default: {
-        tsgo: { t: 1.87, m: 1.37, rt: 11.71, rm: 2.71 },
-        tsrs: { t: 0.16, m: 0.5068, rt: 11.71, rm: 2.71 },
-      },
-      t4: {
-        tsgo: { t: 1.8, m: 1.45, rt: 5.81, rm: 3.67 },
-        tsrs: { t: 0.31, m: 0.3945, rt: 5.81, rm: 3.67 },
-      },
-      t8: {
-        tsgo: { t: 1.63, m: 1.73, rt: 7.68, rm: 3.88 },
-        tsrs: { t: 0.21, m: 0.4453, rt: 7.68, rm: 3.88 },
-      },
-      t16: {
-        tsgo: { t: 1.52, m: 2.2, rt: 9.55, rm: 4.34 },
-        tsrs: { t: 0.16, m: 0.5068, rt: 9.55, rm: 4.34 },
-      },
-    },
+    id: 'mikro-orm',
+    name: 'mikro-orm',
+    ts: { t: 4.63, m: 4.2 },
+    rs: { t: 1.38, m: 1.59 },
+    fast: { t: 0.7, m: 1.81 },
+    rt: 3.36,
+    rtf: 6.62,
+    rm: 2.64,
+    rmf: 2.33,
+    errors: 11,
   },
   {
-    id: 'formbricks-web',
-    name: 'formbricks-web',
-    runs: {
-      default: {
-        tsgo: { t: 6.99, m: 5.8, rt: 11.06, rm: 2.91 },
-        tsrs: { t: 0.63, m: 2.0, rt: 11.06, rm: 2.91 },
-      },
-      t4: {
-        tsgo: { t: 6.95, m: 5.48, rt: 5.93, rm: 3.79 },
-        tsrs: { t: 1.17, m: 1.45, rt: 5.93, rm: 3.79 },
-      },
-      t8: {
-        tsgo: { t: 6.04, m: 7.21, rt: 7.93, rm: 4.26 },
-        tsrs: { t: 0.76, m: 1.69, rt: 7.93, rm: 4.26 },
-      },
-      t16: {
-        tsgo: { t: 6.16, m: 9.55, rt: 9.76, rm: 4.78 },
-        tsrs: { t: 0.63, m: 2.0, rt: 9.76, rm: 4.78 },
-      },
-    },
+    id: 'mui-docs',
+    name: 'mui-docs',
+    ts: { t: 4.06, m: 3.26 },
+    rs: { t: 1.45, m: 1.28 },
+    fast: { t: 1.09, m: 1.47 },
+    rt: 2.8,
+    rtf: 3.71,
+    rm: 2.54,
+    rmf: 2.22,
+    errors: 0,
   },
   {
     id: 'supabase-studio',
     name: 'supabase-studio',
-    runs: {
-      default: {
-        tsgo: { t: 7.16, m: 4.43, rt: 10.8, rm: 2.62 },
-        tsrs: { t: 0.66, m: 1.69, rt: 10.8, rm: 2.62 },
-      },
-      t4: {
-        tsgo: { t: 7.24, m: 4.87, rt: 5.53, rm: 4.11 },
-        tsrs: { t: 1.31, m: 1.19, rt: 5.53, rm: 4.11 },
-      },
-      t8: {
-        tsgo: { t: 6.23, m: 6.33, rt: 6.99, rm: 4.52 },
-        tsrs: { t: 0.89, m: 1.4, rt: 6.99, rm: 4.52 },
-      },
-      t16: {
-        tsgo: { t: 6.77, m: 9.09, rt: 10.27, rm: 5.38 },
-        tsrs: { t: 0.66, m: 1.69, rt: 10.27, rm: 5.38 },
-      },
-    },
+    ts: { t: 4.01, m: 3.2 },
+    rs: { t: 1.47, m: 1.37 },
+    fast: { t: 0.79, m: 1.54 },
+    rt: 2.72,
+    rtf: 5.05,
+    rm: 2.33,
+    rmf: 2.08,
+    errors: 9,
   },
   {
-    id: 't3code-server',
-    name: 't3code-server',
-    runs: {
-      default: {
-        tsgo: { t: 14.35, m: 6.17, rt: 10.33, rm: 2.92 },
-        tsrs: { t: 1.39, m: 2.11, rt: 10.33, rm: 2.92 },
-      },
-      t4: {
-        tsgo: { t: 14.73, m: 6.17, rt: 8.96, rm: 5.26 },
-        tsrs: { t: 1.64, m: 1.17, rt: 8.96, rm: 5.26 },
-      },
-      t8: {
-        tsgo: { t: 14.52, m: 8.12, rt: 9.27, rm: 5.31 },
-        tsrs: { t: 1.57, m: 1.53, rt: 9.27, rm: 5.31 },
-      },
-      t16: {
-        tsgo: { t: 14.26, m: 10.72, rt: 10.2, rm: 5.08 },
-        tsrs: { t: 1.4, m: 2.11, rt: 10.2, rm: 5.08 },
-      },
-    },
-  },
-  {
-    id: 'webpack',
-    name: 'webpack',
-    runs: {
-      default: {
-        tsgo: { t: 1.48, m: 1.15, rt: 10.28, rm: 2.21 },
-        tsrs: { t: 0.14, m: 0.5234, rt: 10.28, rm: 2.21 },
-      },
-      t4: {
-        tsgo: { t: 1.46, m: 1.19, rt: 5.1, rm: 3.0 },
-        tsrs: { t: 0.29, m: 0.3955, rt: 5.1, rm: 3.0 },
-      },
-      t8: {
-        tsgo: { t: 1.18, m: 1.4, rt: 6.09, rm: 3.15 },
-        tsrs: { t: 0.19, m: 0.4434, rt: 6.09, rm: 3.15 },
-      },
-      t16: {
-        tsgo: { t: 1.13, m: 1.7, rt: 7.94, rm: 3.26 },
-        tsrs: { t: 0.14, m: 0.5205, rt: 7.94, rm: 3.26 },
-      },
-    },
-  },
-  {
-    id: 'drizzle-orm',
-    name: 'drizzle-orm',
-    runs: {
-      default: {
-        tsgo: { t: 1.92, m: 1.75, rt: 9.64, rm: 2.21 },
-        tsrs: { t: 0.2, m: 0.79, rt: 9.64, rm: 2.21 },
-      },
-      t4: {
-        tsgo: { t: 1.99, m: 1.75, rt: 6.5, rm: 3.49 },
-        tsrs: { t: 0.31, m: 0.5, rt: 6.5, rm: 3.49 },
-      },
-      t8: {
-        tsgo: { t: 1.76, m: 2.12, rt: 8.01, rm: 3.69 },
-        tsrs: { t: 0.22, m: 0.5742, rt: 8.01, rm: 3.69 },
-      },
-      t16: {
-        tsgo: { t: 1.83, m: 2.67, rt: 9.15, rm: 3.35 },
-        tsrs: { t: 0.2, m: 0.7969, rt: 9.15, rm: 3.35 },
-      },
-    },
+    id: 'formbricks-web',
+    name: 'formbricks-web',
+    ts: { t: 3.34, m: 4.11 },
+    rs: { t: 1.19, m: 1.92 },
+    fast: { t: 0.72, m: 1.82 },
+    rt: 2.8,
+    rtf: 4.64,
+    rm: 2.14,
+    rmf: 2.26,
+    errors: 0,
   },
   {
     id: 'cal-diy',
     name: 'cal-diy',
-    runs: {
-      default: {
-        tsgo: { t: 5.65, m: 4.34, rt: 9.24, rm: 2.32 },
-        tsrs: { t: 0.61, m: 1.87, rt: 9.24, rm: 2.32 },
-      },
-      t4: {
-        tsgo: { t: 5.76, m: 4.36, rt: 5.79, rm: 3.81 },
-        tsrs: { t: 0.99, m: 1.14, rt: 5.79, rm: 3.81 },
-      },
-      t8: {
-        tsgo: { t: 5.53, m: 5.85, rt: 7.31, rm: 4.06 },
-        tsrs: { t: 0.76, m: 1.44, rt: 7.31, rm: 4.06 },
-      },
-      t16: {
-        tsgo: { t: 5.82, m: 8.21, rt: 9.56, rm: 4.36 },
-        tsrs: { t: 0.61, m: 1.88, rt: 9.56, rm: 4.36 },
-      },
-    },
+    ts: { t: 2.84, m: 3.1 },
+    rs: { t: 1.03, m: 1.31 },
+    fast: { t: 0.73, m: 1.71 },
+    rt: 2.76,
+    rtf: 3.89,
+    rm: 2.37,
+    rmf: 1.81,
+    errors: 136,
+  },
+  {
+    id: 'next-packages-next',
+    name: 'next-packages-next',
+    ts: { t: 1.47, m: 1.36 },
+    rs: { t: 0.53, m: 0.6074 },
+    fast: { t: 0.25, m: 0.6201 },
+    rt: 2.8,
+    rtf: 5.98,
+    rm: 2.24,
+    rmf: 2.2,
+    errors: 3,
   },
   {
     id: 'next-root',
     name: 'next-root',
-    runs: {
-      default: {
-        tsgo: { t: 1.58, m: 1.31, rt: 9.11, rm: 2.75 },
-        tsrs: { t: 0.17, m: 0.4756, rt: 9.11, rm: 2.75 },
-      },
-      t4: {
-        tsgo: { t: 1.6, m: 1.3, rt: 5.4, rm: 3.25 },
-        tsrs: { t: 0.3, m: 0.3994, rt: 5.4, rm: 3.25 },
-      },
-      t8: {
-        tsgo: { t: 1.3, m: 1.5, rt: 6.45, rm: 3.5 },
-        tsrs: { t: 0.2, m: 0.4277, rt: 6.45, rm: 3.5 },
-      },
-      t16: {
-        tsgo: { t: 1.17, m: 1.62, rt: 6.79, rm: 3.41 },
-        tsrs: { t: 0.17, m: 0.4746, rt: 6.79, rm: 3.41 },
-      },
-    },
+    ts: { t: 1.24, m: 1.05 },
+    rs: { t: 0.55, m: 0.4932 },
+    fast: { t: 0.4, m: 0.4805 },
+    rt: 2.26,
+    rtf: 3.11,
+    rm: 2.13,
+    rmf: 2.18,
+    errors: 4,
   },
   {
-    id: 'playwright',
-    name: 'playwright',
-    runs: {
-      default: {
-        tsgo: { t: 1.24, m: 1.08, rt: 9.07, rm: 2.23 },
-        tsrs: { t: 0.14, m: 0.4854, rt: 9.07, rm: 2.23 },
-      },
-      t4: {
-        tsgo: { t: 1.23, m: 1.05, rt: 5.06, rm: 3.16 },
-        tsrs: { t: 0.24, m: 0.333, rt: 5.06, rm: 3.16 },
-      },
-      t8: {
-        tsgo: { t: 1.07, m: 1.42, rt: 6.11, rm: 3.56 },
-        tsrs: { t: 0.17, m: 0.3984, rt: 6.11, rm: 3.56 },
-      },
-      t16: {
-        tsgo: { t: 1.18, m: 1.89, rt: 8.62, rm: 3.88 },
-        tsrs: { t: 0.14, m: 0.4873, rt: 8.62, rm: 3.88 },
-      },
-    },
+    id: 'webpack',
+    name: 'webpack',
+    ts: { t: 0.74, m: 0.8242 },
+    rs: { t: 0.28, m: 0.3955 },
+    fast: { t: 0.16, m: 0.4668 },
+    rt: 2.6,
+    rtf: 4.69,
+    rm: 2.08,
+    rmf: 1.77,
+    errors: 840,
+  },
+  {
+    id: 'storybook',
+    name: 'storybook',
+    ts: { t: 0.72, m: 0.9033 },
+    rs: { t: 0.29, m: 0.4355 },
+    fast: { t: 0.2, m: 0.458 },
+    rt: 2.51,
+    rtf: 3.62,
+    rm: 2.08,
+    rmf: 1.97,
+    errors: 94,
   },
   {
     id: 'nuxt',
     name: 'nuxt',
-    runs: {
-      default: {
-        tsgo: { t: 1.33, m: 1.16, rt: 7.73, rm: 2.28 },
-        tsrs: { t: 0.17, m: 0.5059, rt: 7.73, rm: 2.28 },
-      },
-      t4: {
-        tsgo: { t: 1.34, m: 1.16, rt: 4.92, rm: 3.08 },
-        tsrs: { t: 0.27, m: 0.378, rt: 4.92, rm: 3.08 },
-      },
-      t8: {
-        tsgo: { t: 1.12, m: 1.39, rt: 5.25, rm: 3.26 },
-        tsrs: { t: 0.21, m: 0.4268, rt: 5.25, rm: 3.26 },
-      },
-      t16: {
-        tsgo: { t: 1.14, m: 1.73, rt: 6.45, rm: 3.43 },
-        tsrs: { t: 0.18, m: 0.5049, rt: 6.45, rm: 3.43 },
-      },
-    },
+    ts: { t: 0.71, m: 0.9189 },
+    rs: { t: 0.31, m: 0.4141 },
+    fast: { t: 0.24, m: 0.4746 },
+    rt: 2.28,
+    rtf: 3.0,
+    rm: 2.22,
+    rmf: 1.94,
+    errors: 1,
+  },
+  {
+    id: 'drizzle-orm',
+    name: 'drizzle-orm',
+    ts: { t: 0.71, m: 0.875 },
+    rs: { t: 0.25, m: 0.4053 },
+    fast: { t: 0.17, m: 0.5127 },
+    rt: 2.87,
+    rtf: 4.1,
+    rm: 2.16,
+    rmf: 1.7,
+    errors: 32,
+  },
+  {
+    id: 'playwright',
+    name: 'playwright',
+    ts: { t: 0.61, m: 0.7402 },
+    rs: { t: 0.24, m: 0.3525 },
+    fast: { t: 0.15, m: 0.4365 },
+    rt: 2.57,
+    rtf: 4.03,
+    rm: 2.1,
+    rmf: 1.7,
+    errors: 0,
+  },
+  {
+    id: 'typeorm',
+    name: 'typeorm',
+    ts: { t: 0.48, m: 0.4531 },
+    rs: { t: 0.25, m: 0.2275 },
+    fast: { t: 0.19, m: 0.2402 },
+    rt: 1.92,
+    rtf: 2.48,
+    rm: 1.99,
+    rmf: 1.88,
+    errors: 31,
   },
   {
     id: 'xstate-main',
     name: 'xstate-main',
-    runs: {
-      default: {
-        tsgo: { t: 0.84, m: 0.7236, rt: 7.32, rm: 2.67 },
-        tsrs: { t: 0.11, m: 0.2715, rt: 7.32, rm: 2.67 },
-      },
-      t4: {
-        tsgo: { t: 0.82, m: 0.7188, rt: 5.29, rm: 2.93 },
-        tsrs: { t: 0.16, m: 0.2451, rt: 5.29, rm: 2.93 },
-      },
-      t8: {
-        tsgo: { t: 0.68, m: 0.8682, rt: 6.44, rm: 3.1 },
-        tsrs: { t: 0.11, m: 0.2803, rt: 6.44, rm: 3.1 },
-      },
-      t16: {
-        tsgo: { t: 0.72, m: 1.11, rt: 8.43, rm: 3.31 },
-        tsrs: { t: 0.09, m: 0.335, rt: 8.43, rm: 3.31 },
-      },
-    },
+    ts: { t: 0.46, m: 0.5488 },
+    rs: { t: 0.19, m: 0.2588 },
+    fast: { t: 0.14, m: 0.2402 },
+    rt: 2.38,
+    rtf: 3.22,
+    rm: 2.12,
+    rmf: 2.29,
+    errors: 0,
+  },
+  {
+    id: 'date-fns',
+    name: 'date-fns',
+    ts: { t: 0.32, m: 0.377 },
+    rs: { t: 0.17, m: 0.1719 },
+    fast: { t: 0.14, m: 0.1787 },
+    rt: 1.87,
+    rtf: 2.23,
+    rm: 2.19,
+    rmf: 2.12,
+    errors: 0,
   },
   {
     id: 'compiler-unions',
     name: 'Compiler-Unions',
-    runs: {
-      default: {
-        tsgo: { t: 0.52, m: 0.2383, rt: 5.81, rm: 2.44 },
-        tsrs: { t: 0.09, m: 0.0977, rt: 5.81, rm: 2.44 },
-      },
-      t4: {
-        tsgo: { t: 0.53, m: 0.2393, rt: 5.8, rm: 2.44 },
-        tsrs: { t: 0.09, m: 0.0977, rt: 5.8, rm: 2.44 },
-      },
-      t8: {
-        tsgo: { t: 0.41, m: 0.2598, rt: 4.39, rm: 2.35 },
-        tsrs: { t: 0.09, m: 0.1104, rt: 4.39, rm: 2.35 },
-      },
-      t16: {
-        tsgo: { t: 0.41, m: 0.2881, rt: 4.25, rm: 2.23 },
-        tsrs: { t: 0.1, m: 0.1299, rt: 4.25, rm: 2.23 },
-      },
-    },
+    ts: { t: 0.29, m: 0.1523 },
+    rs: { t: 0.12, m: 0.0791 },
+    fast: { t: 0.12, m: 0.0791 },
+    rt: 2.44,
+    rtf: 2.41,
+    rm: 1.93,
+    rmf: 1.93,
+    errors: 41,
   },
   {
     id: 'compiler',
     name: 'Compiler',
-    runs: {
-      default: {
-        tsgo: { t: 0.29, m: 0.2119, rt: 4.2, rm: 2.17 },
-        tsrs: { t: 0.07, m: 0.0977, rt: 4.2, rm: 2.17 },
-      },
-      t4: {
-        tsgo: { t: 0.29, m: 0.2139, rt: 4.37, rm: 2.19 },
-        tsrs: { t: 0.07, m: 0.0977, rt: 4.37, rm: 2.19 },
-      },
-      t8: {
-        tsgo: { t: 0.26, m: 0.2383, rt: 3.74, rm: 2.17 },
-        tsrs: { t: 0.07, m: 0.1104, rt: 3.74, rm: 2.17 },
-      },
-      t16: {
-        tsgo: { t: 0.27, m: 0.2656, rt: 3.7, rm: 2.05 },
-        tsrs: { t: 0.07, m: 0.1299, rt: 3.7, rm: 2.05 },
-      },
-    },
+    ts: { t: 0.16, m: 0.1357 },
+    rs: { t: 0.09, m: 0.0752 },
+    fast: { t: 0.09, m: 0.0732 },
+    rt: 1.77,
+    rtf: 1.71,
+    rm: 1.81,
+    rmf: 1.85,
+    errors: 43,
   },
 ];
 
-/** Error counts where tsgo and tsrs disagree, by run. Same input, same tsconfig, --noEmit. */
-export const ERROR_DIFFS: Record<
-  SettingId,
-  { project: string; tsgo: number; tsrs: number; kind: 'version' | 'bug' }[]
-> = {
-  default: [
-    { project: 'vscode', tsgo: 359, tsrs: 371, kind: 'version' },
-    { project: 'webpack', tsgo: 848, tsrs: 840, kind: 'version' },
-    { project: 'supabase-studio', tsgo: 0, tsrs: 9, kind: 'version' },
-    { project: 't3code-server', tsgo: 5, tsrs: 6, kind: 'version' },
-    { project: 'next-packages-next', tsgo: 6, tsrs: 5, kind: 'version' },
-    { project: 'next-root', tsgo: 441, tsrs: 438, kind: 'version' },
-    { project: 'nuxt', tsgo: 3, tsrs: 4, kind: 'version' },
-    { project: 'drizzle-orm', tsgo: 10845, tsrs: 10846, kind: 'version' },
-  ],
-  t4: [
-    { project: 'vscode', tsgo: 359, tsrs: 371, kind: 'version' },
-    { project: 'webpack', tsgo: 848, tsrs: 840, kind: 'version' },
-    { project: 'supabase-studio', tsgo: 0, tsrs: 9, kind: 'version' },
-    { project: 't3code-server', tsgo: 5, tsrs: 6, kind: 'version' },
-    { project: 'next-packages-next', tsgo: 6, tsrs: 5, kind: 'version' },
-    { project: 'next-root', tsgo: 441, tsrs: 438, kind: 'version' },
-    { project: 'nuxt', tsgo: 3, tsrs: 4, kind: 'version' },
-    { project: 'drizzle-orm', tsgo: 10846, tsrs: 10846, kind: 'version' },
-  ],
-  t8: [
-    { project: 'vscode', tsgo: 359, tsrs: 371, kind: 'version' },
-    { project: 'webpack', tsgo: 848, tsrs: 840, kind: 'version' },
-    { project: 'supabase-studio', tsgo: 0, tsrs: 9, kind: 'version' },
-    { project: 't3code-server', tsgo: 5, tsrs: 6, kind: 'version' },
-    { project: 'next-packages-next', tsgo: 6, tsrs: 5, kind: 'version' },
-    { project: 'next-root', tsgo: 441, tsrs: 438, kind: 'version' },
-    { project: 'nuxt', tsgo: 3, tsrs: 4, kind: 'version' },
-    { project: 'drizzle-orm', tsgo: 10846, tsrs: 10846, kind: 'version' },
-  ],
-  t16: [
-    { project: 'vscode', tsgo: 359, tsrs: 371, kind: 'version' },
-    { project: 'webpack', tsgo: 848, tsrs: 840, kind: 'version' },
-    { project: 'supabase-studio', tsgo: 0, tsrs: 9, kind: 'version' },
-    { project: 't3code-server', tsgo: 5, tsrs: 6, kind: 'version' },
-    { project: 'next-packages-next', tsgo: 6, tsrs: 5, kind: 'version' },
-    { project: 'next-root', tsgo: 441, tsrs: 438, kind: 'version' },
-    { project: 'drizzle-orm', tsgo: 10846, tsrs: 10846, kind: 'bug' },
-  ],
+/**
+ * Watch mode, vscode (9.4k files under src/), Apple M3 Max 14 cores / 96 GB, macOS 26.6.2.
+ * Comparison: tsgo nightly 7.0.0-dev.20260707.2 (@typescript/native-preview), not a pinned build.
+ * Source: notes/watch-macos.md. Edit latency measured from write to the reported cycle.
+ */
+export const WATCH_META = {
+  machine: 'Apple M3 Max · 14 核 · 96 GB · macOS 26.6.2',
+  project: 'vscode @ 9cf0128b · src/ 下 9.4k 文件',
+  reference: 'tsgo nightly 7.0.0-dev.20260707.2（非 pinned 构建）',
+  source: 'https://github.com/oxc-project/tsrs/blob/main/notes/watch-macos.md',
 };
 
-/** vscode, --watch -p src --noEmit, 8 vCPU. Edit latency measured from write to the reported cycle. */
-export const WATCH = [
+export type WatchRow = {
+  id: string;
+  label: string;
+  /** seconds; null for non-latency rows */
+  tsrs: number | null;
+  tsgo: number | null;
+  tsrsLabel: string;
+  tsgoLabel: string;
+  buildTsrs: string;
+  buildTsgo: string;
+  how: string;
+};
+
+export const WATCH: WatchRow[] = [
   {
     id: 'build',
     label: '首次构建',
-    tsgo: '12.41 s',
-    tsrs: '1.86 s',
-    ratio: '6.68×',
-    how: '整个仓库从头检查一遍，10,427 个文件。',
+    tsrs: 2.0,
+    tsgo: 9.8,
+    tsrsLabel: '2.0 s',
+    tsgoLabel: '9.8 s',
+    buildTsrs: '3.2 s',
+    buildTsgo: '8.9 s',
+    how: '整个 src/ 从头检查一遍。-b --watch 走增量构建路径。',
   },
   {
     id: 'first',
     label: '首次改注释',
-    tsgo: '1.76 s',
-    tsrs: '33 ms',
-    ratio: '53.36×',
-    how: '改动落在没人 import 的测试文件上，受影响的只有它自己。',
+    tsrs: 0.048,
+    tsgo: 13.5,
+    tsrsLabel: '48 ms · 1 个周期',
+    tsgoLabel: '13.5 s · 1 个周期',
+    buildTsrs: '3.2 s',
+    buildTsgo: '13.4 s',
+    how: '改动落在叶子上，受影响的只有它自己。tsgo 这里重查了整个程序。',
   },
   {
     id: 'repeat',
     label: '重复改注释',
-    tsgo: '1.18 s',
-    tsrs: '31 ms',
-    ratio: '38.06×',
-    how: '同一会话里的第五次编辑，数字比第一次还低一点。',
+    tsrs: 0.059,
+    tsgo: 1.49,
+    tsrsLabel: '59 ms',
+    tsgoLabel: '1.49 s',
+    buildTsrs: '264 ms',
+    buildTsgo: '1.48 s',
+    how: 'tsrs 取 8 次中位，tsgo 取 4 次。同一会话里越改越快。',
+  },
+  {
+    id: 'hub',
+    label: '枢纽文件加一个导出',
+    tsrs: 1.3,
+    tsgo: 11.7,
+    tsrsLabel: '1.3 s',
+    tsgoLabel: '11.7 s',
+    buildTsrs: '2.8 s',
+    buildTsgo: '11.6 s',
+    how: '最重的编辑：签名变了，下游都要重查。仍然快一个量级。',
   },
   {
     id: 'error',
     label: '叶子文件里造一个类型错误',
-    tsgo: '1.65 s',
-    tsrs: '34 ms',
-    ratio: '48.53×',
-    how: '最坏的情况：错误要沿 import 链报上去，仍然只要 34 毫秒。',
-  },
-  {
-    id: 'peak',
-    label: '峰值 RSS',
-    tsgo: '10.12 GiB',
-    tsrs: '2.47 GiB',
-    ratio: '4.09×',
-    how: '会话全程的内存高点，出现在首次构建结束的那一刻。',
-  },
-  {
-    id: 'after',
-    label: '编辑之后的 RSS',
-    tsgo: '5.99 GiB',
-    tsrs: '1.40 GiB',
-    ratio: '4.26×',
-    how: '编辑几轮之后的常驻内存，不是峰值。',
+    tsrs: 0.046,
+    tsgo: 13.1,
+    tsrsLabel: '46 ms',
+    tsgoLabel: '13.1 s',
+    buildTsrs: '3.2 s',
+    buildTsgo: '13.1 s',
+    how: '错误要沿 import 链报上去，tsrs 仍然只要 46 毫秒。',
   },
 ];
 
-export const fmtTime = (s: number) =>
-  s < 1 ? `${s.toFixed(2).replace(/^0/, '0')} s` : `${s.toFixed(2)} s`;
+export const WATCH_EXTRA = {
+  detected: { tsrs: '13–16 ms', tsgo: '14 ms', buildTsrs: '12–16 ms', buildTsgo: '108–137 ms' },
+  rss: {
+    tsrs: '2.1–3.3 GB',
+    tsgo: '10.4–14.8 GB',
+    buildTsrs: '2.3–3.4 GB',
+    buildTsgo: '10.6–17.3 GB',
+  },
+  idle: '签名作业完成后，30 秒内 0 次中断唤醒、0 ms CPU。',
+  ctrlc: 'Ctrl-C 空闲时 88 ms 退出，周期中 23 ms。',
+  suites: 'tscWatch 39/42 · tsbuildWatch 57/65 场景基线通过（与 Linux 相同）。',
+  memoryFix:
+    '分支往返（4,037 个文件改写）8 轮后 RSS：修复前 2.5→16.6 GB（+1.85 GB/轮），修复后 2.5→6.2 GB（约 0.5 GB/轮）；-b --watch 4 轮 2.3→6.9 GB 降到 2.4→3.8 GB。',
+};
+
+/**
+ * Type-aware lint + type check, Outline's 7 rules, 8 cores.
+ * AWS m8g.4xlarge (16 Graviton4 vCPUs, 64 GiB), Ubuntu 24.04, Node 24; tsrs 0.24.0, oxlint 1.93.0.
+ * Caveat printed upstream: releases after 0.25 type-check only the files Oxlint lints.
+ * Source: bench/lint-typecheck/RESULTS.md.
+ */
+export const LINT_META = {
+  machine: 'AWS m8g.4xlarge · 16 Graviton4 vCPU · 64 GiB · Ubuntu 24.04 · Node 24',
+  versions: 'tsrs 0.24.0 · oxlint 1.93.0 · oxlint-tsgolint 7.0.2006 · typescript-eslint 8.72.2',
+  caveat: '此表测于 0.24.0（--type-check 当时检查整个 program）；0.25 之后只检查被 lint 的文件。',
+  source: 'https://github.com/oxc-project/tsrs/blob/main/bench/lint-typecheck/RESULTS.md',
+};
+
+export type LintRow = {
+  project: string;
+  /** wall seconds: tsrs one run / tsgolint+tsgo / ESLint+tsc */
+  one: number;
+  go: number;
+  eslint: number;
+  /** peak memory GiB, all processes */
+  oneMem: number;
+  goMem: number;
+  eslintMem: number;
+};
+
+export const LINT_ROWS: LintRow[] = [
+  {
+    project: 'VS Code',
+    one: 4.8,
+    go: 21.3,
+    eslint: 293,
+    oneMem: 3.6,
+    goMem: 16.3,
+    eslintMem: 28.7,
+  },
+  { project: 'Outline', one: 2.3, go: 9.4, eslint: 53.6, oneMem: 1.2, goMem: 4.9, eslintMem: 8.3 },
+  {
+    project: 'Vue core',
+    one: 0.36,
+    go: 1.4,
+    eslint: 12.1,
+    oneMem: 0.3965,
+    goMem: 1.1,
+    eslintMem: 2.7,
+  },
+];
+
+/** Conformance evidence, docs/COMPATIBILITY.md + tasks/determinism + tools/repo-conformance. */
+export const CONFORMANCE = [
+  {
+    id: 'baselines',
+    label: '编译器基线',
+    big: '13,700',
+    unit: '条错误基线全匹配',
+    detail:
+      '另有 12,998 条 .types 与 .symbols 基线、13,626 条 JS/声明基线、149 条 JS map、156 条 source-map 记录，Go 与 canonical 两种 checker 历史下都匹配。',
+  },
+  {
+    id: 'fourslash',
+    label: 'Fourslash',
+    big: '4,149',
+    unit: '/ 4,562 组通过 · 0 失败',
+    detail: '语言服务交互测试门槛：至少 4,149 个被 exercised 的组，且拒绝任何失败组。',
+  },
+  {
+    id: 'nodeapi',
+    label: 'Node API',
+    big: '968',
+    unit: '/ 968 测试通过',
+    detail: 'SDK 套件在两个编译器上全过；177 个方法中 170 个有成功响应。',
+  },
+  {
+    id: 'determinism',
+    label: '确定性',
+    big: '456',
+    unit: '项跨配置对照全过',
+    detail:
+      '19 个项目，4/12 checker、优化与种子随机调度下与 npm tsgo --singleThreaded 快照逐项一致；另有 48 个 fixture 的 912 次回归调用。',
+  },
+  {
+    id: 'repos',
+    label: '千仓对照',
+    big: '1,000',
+    unit: '个热门 TS 仓库',
+    detail:
+      'qualifying 变更合入 main 后，与 pinned tsgo 对照诊断（默认与严格 --checkers 4 两种模式）；报告含 diff 与覆盖率。通过率在 workflow 报告里，仓库未提交汇总数字。',
+  },
+  {
+    id: 'wasm',
+    label: 'WASM',
+    big: '2,000',
+    unit: '例样本字节级一致',
+    detail: '@tsrs/wasm 与原生 --singleThreaded 在 2,000 例一致性样本上输出字节相同。',
+  },
+];
+
+/** Recent releases (GitHub releases API, fetched 2026-11-18). */
+export const RELEASES = [
+  {
+    v: '7.1.0-beta.tsrs2',
+    date: '2026-11-16',
+    note: '首个 TypeScript 对齐版本的 npm 发布；十个 npm 包同版本号；linter 默认开 fast（TSRS_FAST=0 退出）；--type-check 只查被 lint 的文件；Rust 1.100。',
+  },
+  {
+    v: '0.25.0',
+    date: '2026-11-12',
+    note: 'Windows ARM64 原生包 @tsrs/win32-arm64；headless lint 并发处理多 tsconfig（约 40 个 tsconfig 的仓库墙钟时间省约三分之一）。',
+  },
+  {
+    v: '0.24.0',
+    date: '2026-11-10',
+    note: 'LSP 编辑提速：保留 imports 的编辑复用 program（含 importHelpers / jsx: react-jsx）；lint 内存与解析共享。',
+  },
+  {
+    v: '0.23.0',
+    date: '2026-11-07',
+    note: 'oxlint --type-aware --type-check 两种模式都检查整个 tsconfig program（后于 tsrs2 回调为只查被 lint 的文件）。',
+  },
+  {
+    v: '0.22.0',
+    date: '2026-11-05',
+    note: 'fast 预设下一次运行同时完成 type-aware lint 与类型检查；LSP/Node API/linter 支持 .vue / .svelte / .astro 内容映射。',
+  },
+  {
+    v: '0.21.0',
+    date: '2026-11-03',
+    note: 'Oxlint 的 type-aware linter：实现 tsgolint headless 协议与全部 61 条规则（v7.0.2005），随 tsrs 包发布 tsrs-lint。',
+  },
+];
+
+export const fmtTime = (s: number) => (s < 1 ? `${Math.round(s * 1000)} ms` : `${s.toFixed(2)} s`);
 export const fmtMem = (gib: number) =>
   gib >= 1 ? `${gib.toFixed(2)} GiB` : `${Math.round(gib * 1024)} MiB`;
 export const fmtRatio = (n: number) => `${n.toFixed(2)}×`;
