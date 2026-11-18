@@ -5,30 +5,31 @@ export function Status() {
     <>
       <H2 id="status-now">当前状态</H2>
       <p>
-        最新发布是 <strong>7.1.0-beta.tsrs2</strong>（2026-11-16），它是第一个使用 TypeScript
-        对齐版本号的 <strong>npm</strong> 发布：同一 scheme 下的 <code>7.1.0-beta.tsrs1</code>{' '}
-        只到达了 crates.io， 其 npm 发布卡在安装后包的 smoke test 上——那一步当时还按{' '}
-        <code>0.25.0-ts7.1.0-beta</code> 格式校验（#1000）。 Cargo crate 与十个 npm
-        包（主包、八个原生平台包、WebAssembly）共享 <code>7.1.0-beta.tsrs2</code>。
+        最新发布是 <strong>7.1.0-beta.tsrs3</strong>（2026-11-18），它是第一个发到 npm{' '}
+        <code>latest</code> 标签的 TypeScript 对齐版本（#1014），裸装即得。此前的{' '}
+        <strong>7.1.0-beta.tsrs2</strong>（2026-11-16）是第一个使用 TypeScript 对齐版本号的{' '}
+        <strong>npm</strong> 发布：同一 scheme 下的 <code>7.1.0-beta.tsrs1</code> 只到达了
+        crates.io， 其 npm 发布卡在安装后包的 smoke test 上——那一步当时还按{' '}
+        <code>0.25.0-ts7.1.0-beta</code> 格式校验（#1000）。Cargo crate 与十个 npm
+        包（主包、八个原生平台包、WebAssembly）共享同一版本号。
       </p>
       <DocTable
         head={['npm 标签', '当前指向', '说明']}
         rows={[
           [
             'latest',
-            '0.25.0-ts7.1.0-beta',
-            '旧的 <tsrs 版本>-ts<TypeScript 版本> 格式，仍是裸装得到的版本',
+            '7.1.0-beta.tsrs3',
+            '自 tsrs3 起 TypeScript 对齐版本直接发到 latest，裸装得到的就是它',
           ],
-          ['next', '7.1.0-beta.tsrs2', 'TypeScript 对齐版本按预发布处理，发布到 next'],
+          ['next', '（已不再使用）', 'tsrs2 曾发在 next；当前 registry 只返回 latest 一个标签'],
         ]}
       />
-      <Callout kind="warn">
+      <Callout kind="info">
         <p>
-          上表是<strong>截至 2026-11-18 的实际 registry 状态</strong>，不要把它当成永久规则：提交{' '}
+          上表是<strong>截至 2026-11-18 的实际 registry 状态</strong>。提交{' '}
           <code>ci(release): publish npm packages to latest (#1014)</code> 于 2026-11-17 落地，
-          <strong>晚于</strong> 7.1.0-beta.tsrs2 的发布。也就是说发布流水线此后改为把 npm 包发到{' '}
-          <code>latest</code>，下一个版本有可能直接出现在 <code>latest</code> 上。在核实之前，
-          不要把标签走向写进脚本或文档断言里；需要确定版本时请用精确版本号。
+          随后的 7.1.0-beta.tsrs3 成为第一个按新流水线发到 <code>latest</code> 的版本。
+          标签走向仍可能随发布策略调整；需要确定版本时请用精确版本号。
         </p>
       </Callout>
       <p>
@@ -109,6 +110,11 @@ export function Status() {
             '7.1.0-beta.tsrs2',
             '2026-11-16',
             '首个 TypeScript 对齐版本的 npm 发布；linter 默认启用 fast；--type-check 只报告被 lint 的文件',
+          ],
+          [
+            '7.1.0-beta.tsrs3',
+            '2026-11-18',
+            '首个发到 npm latest 的对齐版本；--type-check 不再报告 suggestion 诊断、类型错误带消息链；6 项对齐 tsgo 的编译器修复',
           ],
         ]}
       />

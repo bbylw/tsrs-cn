@@ -6,11 +6,7 @@ const PMS = ['pnpm', 'npm', 'bun', 'yarn'] as const;
 type Pm = (typeof PMS)[number];
 
 const addCmd = (pm: Pm) =>
-  pm === 'npm'
-    ? 'npm i -D tsrs@next'
-    : pm === 'yarn'
-      ? 'yarn add -D tsrs@next'
-      : `${pm} add -D tsrs@next`;
+  pm === 'npm' ? 'npm i -D tsrs' : pm === 'yarn' ? 'yarn add -D tsrs' : `${pm} add -D tsrs`;
 const runCmd = (pm: Pm) =>
   pm === 'bun'
     ? 'bunx tsrs --noEmit --fast'
@@ -236,9 +232,10 @@ export function Quickstart() {
             <h3 className="mb-3 text-lg font-semibold text-bone">先装上它</h3>
             <Cmd compact text={addCmd(pm)} />
             <p className="lead-pretty mt-4 text-sm leading-relaxed text-ash">
-              <code className="num text-molten">@next</code> 指向 7.1.0-beta.tsrs2。包本身只是入口，
-              二进制按平台分发：macOS arm64/x64、Linux x64/arm64（gnu 与 musl）、Windows
-              x64/arm64，共八个原生包。无原生包平台用 <b className="text-fog">@tsrs/wasm</b> 兜底。
+              裸装即得 <code className="num text-molten">latest</code> 上的
+              7.1.0-beta.tsrs3。包本身只是入口， 二进制按平台分发：macOS arm64/x64、Linux
+              x64/arm64（gnu 与 musl）、Windows x64/arm64，共八个原生包。无原生包平台用{' '}
+              <b className="text-fog">@tsrs/wasm</b> 兜底。
             </p>
           </Reveal>
 

@@ -98,7 +98,7 @@ export function Playground() {
           CLI：
         </p>
       </Callout>
-      <Cmd text="pnpm add -D tsrs@next" />
+      <Cmd text="pnpm add -D tsrs" />
       <p>
         WASM 构建在 Node 与浏览器里的用法见 <a href="#/docs/wasm">WebAssembly</a>；也可以按上游的{' '}
         <Ext href="https://github.com/oxc-project/tsrs/blob/main/playground/README.md">

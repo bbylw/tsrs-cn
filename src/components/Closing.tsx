@@ -41,7 +41,7 @@ export function FinalCta() {
           </div>
           <div>
             <div className="space-y-3">
-              <Cmd text="pnpm add -D tsrs@next" />
+              <Cmd text="pnpm add -D tsrs" />
               <Cmd text="pnpm exec tsrs --noEmit --fast" />
             </div>
             <p className="lead-pretty mt-5 max-w-md text-sm leading-relaxed text-fog">
@@ -109,9 +109,9 @@ export function Foot() {
 
           <div>
             <p className="num mb-3 text-[11px] tracking-wider text-ash uppercase">版本与构建</p>
-            <p className="num text-[13px] leading-relaxed text-fog">7.1.0-beta.tsrs2</p>
+            <p className="num text-[13px] leading-relaxed text-fog">7.1.0-beta.tsrs3</p>
             <p className="num mt-1 text-xs leading-relaxed text-ash">
-              2026-11-16 发布 · 2026-11-18 同步
+              2026-11-18 发布 · 2026-11-18 同步
             </p>
             <p className="num mt-3 text-xs leading-relaxed text-ash">
               本站由 Vite+ 构建 · 类型检查由 tsrs 完成

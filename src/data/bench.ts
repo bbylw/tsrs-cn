@@ -467,6 +467,11 @@ export const CONFORMANCE = [
 /** Recent releases (GitHub releases API, fetched 2026-11-18). */
 export const RELEASES = [
   {
+    v: '7.1.0-beta.tsrs3',
+    date: '2026-11-18',
+    note: '首个发到 npm latest 的 TypeScript 对齐版本（#1014），裸装即得；--type-check 不再报告 suggestion 诊断（#959），类型错误带完整消息链（#1006）；6 项对齐 tsgo 的编译器修复；2 项 lint 性能优化。',
+  },
+  {
     v: '7.1.0-beta.tsrs2',
     date: '2026-11-16',
     note: '首个 TypeScript 对齐版本的 npm 发布；十个 npm 包同版本号；linter 默认开 fast（TSRS_FAST=0 退出）；--type-check 只查被 lint 的文件；Rust 1.100。',
