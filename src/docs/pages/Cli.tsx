@@ -5,11 +5,11 @@ export function Cli() {
     <>
       <H2 id="cli-basic">基本用法</H2>
       <p>
-        安装 7.1.0-beta.tsrs2 后，用它取代 <code>tsc</code>：
+        安装 7.1.0-beta.tsrs3 后，用它取代 <code>tsc</code>：
       </p>
       <CodeBlock
         lang="sh"
-        code={`pnpm add -D tsrs@7.1.0-beta.tsrs2
+        code={`pnpm add -D tsrs@7.1.0-beta.tsrs3
 pnpm exec tsrs -p path/to/project           # 编译
 pnpm exec tsrs -p path/to/project --noEmit  # 只做类型检查
 pnpm exec tsrs -p path/to/project --fast    # 启用 tsrs 的性能模式
@@ -53,7 +53,7 @@ pnpm exec tsrs --version`}
 
       <H2 id="cli-fast-table">性能选项：默认 vs fast 预设</H2>
       <p>
-        7.1.0-beta.tsrs2 的默认值就是被钉住的 TypeScript 的四 checker、文件分配与 checker 历史，成员
+        7.1.0-beta.tsrs3 的默认值就是被钉住的 TypeScript 的四 checker、文件分配与 checker 历史，成员
         eager 实例化； 保持行为不变的内部优化（控制流记忆化、并行解析）在两种模式下都启用。
         <code>--fast</code> 或 <code>TSRS_FAST=1</code> 为编译、watch 与 <code>--build</code>{' '}
         开启预设：

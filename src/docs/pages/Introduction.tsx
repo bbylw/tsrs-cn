@@ -16,7 +16,7 @@ export function Introduction() {
         </Ext>
         。
       </p>
-      <Cmd text="pnpm add -D tsrs@next" />
+      <Cmd text="pnpm add -D tsrs" />
       <p>
         安装后用 <code>tsrs</code> 取代 <code>tsc</code> 即可，命令行参数不变；已有的{' '}
         <code>tsconfig.json</code> 决定编译行为。
@@ -24,15 +24,13 @@ export function Introduction() {
 
       <H2 id="intro-status">当前状态</H2>
       <p>
-        截至同步日期（2026-11-18），上游最新发布为 <code>7.1.0-beta.tsrs2</code>
-        （2026-11-16），这是第一个使用 TypeScript 对齐版本号的 npm 发布；npm 的 <code>
-          latest
-        </code>{' '}
-        标签仍指向 <code>0.25.0-ts7.1.0-beta</code>， 该预发布版本发布在 <code>next</code>
-        （发布流水线已于 2026-11-17 改为面向 <code>latest</code>， 后续发布可能直接落在{' '}
-        <code>latest</code>，见 <a href="#/docs/status">状态与发布</a>）。tsrs 目标 TypeScript{' '}
-        <code>7.1</code>，源码钉在 <code>microsoft/TypeScript@3e9236361fa9</code>（TypeScript
-        7.1.0-beta）。
+        截至同步日期（2026-11-18），上游最新发布为 <code>7.1.0-beta.tsrs3</code>
+        （2026-11-18），它是第一个发到 npm <code>latest</code> 标签的 TypeScript 对齐版本（#1014）：
+        裸装 <code>tsrs</code> 现在得到的就是它，而不是 <code>0.25.0-ts7.1.0-beta</code>。 此前的{' '}
+        <code>7.1.0-beta.tsrs2</code>（2026-11-16）是首个 TypeScript 对齐版本号的 npm 发布，当时发在{' '}
+        <code>next</code>；详见 <a href="#/docs/status">状态与发布</a>。tsrs 目标 TypeScript{' '}
+        <code>7.1</code>，源码钉在 <code>microsoft/TypeScript@3e9236361fa9</code>
+        （TypeScript 7.1.0-beta）。
       </p>
 
       <H2 id="intro-defaults">默认模式与 --fast</H2>
@@ -60,9 +58,10 @@ export function Introduction() {
       <H2 id="intro-versioning">版本号语义简述</H2>
       <p>
         版本号由「所支持的 TypeScript 版本 + 不补零的 tsrs 修订号」组成：针对{' '}
-        <code>7.1.0-beta</code> 的首个发布是 <code>7.1.0-beta.tsrs1</code>，下一个修复是{' '}
-        <code>7.1.0-beta.tsrs2</code>；若针对稳定的 <code>7.1.0</code> 则为 <code>7.1.0-tsrs1</code>
-        。这些都属于 SemVer 预发布版本，当前发布在 npm 的 <code>next</code> 标签。完整规则与 坑（
+        <code>7.1.0-beta</code> 的首个发布是 <code>7.1.0-beta.tsrs1</code>，后续修复依次递增（
+        <code>tsrs2</code>、<code>tsrs3</code>）；若针对稳定的 <code>7.1.0</code> 则为{' '}
+        <code>7.1.0-tsrs1</code>。这些都属于 SemVer 预发布版本；自 <code>tsrs3</code> 起直接发布到
+        npm 的 <code>latest</code> 标签。完整规则与 坑（
         <code>tsrs10</code> 按文本排序会小于 <code>tsrs9</code>）见{' '}
         <a href="#/docs/status">状态与版本</a>。
       </p>

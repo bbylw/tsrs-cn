@@ -37,7 +37,7 @@ export function Lint() {
       <H2 id="lint-typecheck">--type-check 的语义</H2>
       <p>
         <code>--type-check</code> 让同一次运行顺带报告编译器类型错误。
-        <strong>当前版本（7.1.0-beta.tsrs2）的语义是：只报告 Oxlint 选定用于 lint 的文件</strong>
+        <strong>当前版本（7.1.0-beta.tsrs3）的语义是：只报告 Oxlint 选定用于 lint 的文件</strong>
         ，与 tsgolint 一致——README 的原话是「Oxlint 不 lint 的文件不会被类型检查，
         因此请保留一次单独的 <code>tsrs --noEmit</code> 来检查整个 tsconfig
         program」。范围历史上调整过几次：
@@ -56,6 +56,13 @@ export function Lint() {
           lint 的文件； program 的其余文件只提供类型而不报告自己的诊断，被 ignore
           规则或命令行路径排除的文件同样不再让 lint 失败，
           没有源文件位置的全局诊断（例如缺失全局类型）也不再报告。
+        </li>
+        <li>
+          7.1.0-beta.tsrs3（#959、#1006）：<code>--type-check</code> 不再报告 suggestion
+          诊断——Oxlint 会把它们显示为错误，曾让 Effect 等插件的 language service 建议导致 lint
+          失败；<code>tsc</code> 会判失败的 TS1450 一类 message
+          诊断仍然报告。类型错误现在带上完整消息链（解释错误的附加行），
+          <code>tsconfig-error</code> 把消息链放进 help 文本。
         </li>
       </ul>
       <Callout kind="info">
@@ -86,7 +93,10 @@ OXLINT_TSGOLINT_PATH="$PWD/target/debug/tsrs-lint" oxlint --type-aware`}
       <p>
         程序构建与绑定使用原生并行 loader 并遵守 <code>singleThreaded</code>；语义报告与 lint
         规则共用拥有该文件的 checker 及其缓存。content mapper 程序需要{' '}
-        <code>--runExternalCode</code> 或 <code>TSRS_LINT_RUN_EXTERNAL_CODE=1</code>。
+        <code>--runExternalCode</code> 或 <code>TSRS_LINT_RUN_EXTERNAL_CODE=1</code>。 自 tsrs3
+        起，headless 诊断直接序列化、不再构建中间 JSON 值树（#1011），
+        <code>no-unsafe-enum-assignment</code>{' '}
+        在两个受约束类型共享原始包装类型时跳过递归的原型成员比较（#1012）。
       </p>
 
       <H2 id="lint-bench">基准</H2>
