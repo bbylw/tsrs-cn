@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { BENCH_META, PROJECTS, fmtMem, fmtRatio, fmtTime } from '../data/bench';
 import type { Project } from '../data/bench';
 import { Legend, Reveal, SectionHead } from './ui';
@@ -38,11 +38,12 @@ function DetailBars({ project, metric }: { project: Project; metric: Metric }) {
   );
 }
 
-function Detail({ project }: { project: Project }) {
+function Detail({ project, docPage }: { project: Project; docPage: boolean }) {
+  const Heading = docPage ? 'h2' : 'h3';
   return (
     <aside className="panel panel-glow sticky top-24 p-5" aria-live="polite">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="num text-lg font-bold text-bone">{project.name}</h3>
+        <Heading className="num text-lg font-bold text-bone">{project.name}</Heading>
         <span className="chip">默认设置</span>
       </div>
 
@@ -93,7 +94,7 @@ function Detail({ project }: { project: Project }) {
   );
 }
 
-export function Bench() {
+export function Bench({ docPage = false }: { docPage?: boolean }) {
   const [metric, setMetric] = useState<Metric>('time');
   const [scale, setScale] = useState<Scale>('linear');
   const [sort, setSort] = useState<Sort>('fast');
@@ -102,6 +103,10 @@ export function Bench() {
   const [sel, setSel] = useState('mikro-orm');
   const [showRs, setShowRs] = useState(true);
   const [showFast, setShowFast] = useState(true);
+
+  const sortId = useId();
+  const searchId = useId();
+  const tableCaptionId = useId();
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -148,13 +153,18 @@ export function Bench() {
   };
 
   return (
-    <section id="bench" className="relative py-16 md:py-24">
+    <section
+      id="bench"
+      tabIndex={-1}
+      className={`${docPage ? '' : 'deferred-section '}relative py-16 md:py-24`}
+    >
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="aurora aurora-acid top-40 -left-48 h-[480px] w-[480px]" />
       </div>
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHead
           tag="Benchmarks · 19 projects"
+          headingLevel={docPage ? 'h1' : 'h2'}
           title={
             <>
               十九个项目，<span className="fire-text">三方对跑。</span>
@@ -207,19 +217,20 @@ export function Bench() {
             </div>
           </div>
 
-          <label className="num flex items-center gap-2 text-xs text-ash">
-            排序
+          <div className="num flex items-center gap-2 text-xs text-ash">
+            <label htmlFor={sortId}>排序</label>
             <select
+              id={sortId}
+              className="brand-select"
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
-              aria-label="排序方式"
             >
               <option value="fast">按 --fast 优势</option>
               <option value="rs">按默认模式优势</option>
               <option value="ts">按 TypeScript 读数</option>
               <option value="name">按名称</option>
             </select>
-          </label>
+          </div>
 
           <div className="flex items-center gap-2">
             <span className="num text-xs text-ash">赛道</span>
@@ -233,14 +244,19 @@ export function Bench() {
             </div>
           </div>
 
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="搜索项目…"
-            aria-label="搜索项目"
-            className="num w-36"
-          />
+          <search>
+            <label htmlFor={searchId} className="visually-hidden">
+              搜索项目
+            </label>
+            <input
+              id={searchId}
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="搜索项目…"
+              className="num w-36"
+            />
+          </search>
 
           <div className="seg seg-blue ml-auto" role="group" aria-label="视图">
             <button type="button" aria-pressed={view === 'race'} onClick={() => setView('race')}>
@@ -254,7 +270,7 @@ export function Bench() {
           <button
             type="button"
             onClick={reset}
-            className="num cursor-pointer rounded-md border border-seam px-3 py-1.5 text-xs text-ash transition-colors hover:border-danger hover:text-danger"
+            className="num cursor-pointer rounded-md border border-edge px-3 py-1.5 text-xs text-ash transition-colors hover:border-danger hover:text-danger"
           >
             重置
           </button>
@@ -343,19 +359,45 @@ export function Bench() {
                 })}
               </ol>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="num w-full min-w-[720px] text-[13px]">
+              <div
+                tabIndex={0}
+                role="region"
+                aria-labelledby={tableCaptionId}
+                className="overflow-x-auto rounded-lg"
+              >
+                <table className="num w-full min-w-[720px] border-separate border-spacing-0 text-[13px]">
+                  <caption id={tableCaptionId} className="visually-hidden">
+                    19 个项目在 TypeScript 7.1 beta、tsrs 与 tsrs --fast 下的耗时与峰值内存对比表
+                  </caption>
                   <thead>
                     <tr className="border-b border-seam text-left text-[11px] tracking-wider text-ash uppercase">
-                      <th className="px-2 py-2.5 font-normal">项目</th>
-                      <th className="px-2 py-2.5 text-right font-normal">TS 时间</th>
-                      <th className="px-2 py-2.5 text-right font-normal">tsrs 时间</th>
-                      <th className="px-2 py-2.5 text-right font-normal">--fast 时间</th>
-                      <th className="px-2 py-2.5 text-right font-normal">TS 内存</th>
-                      <th className="px-2 py-2.5 text-right font-normal">tsrs 内存</th>
-                      <th className="px-2 py-2.5 text-right font-normal">--fast 内存</th>
-                      <th className="px-2 py-2.5 text-right font-normal">快（fast）</th>
-                      <th className="px-2 py-2.5 text-right font-normal">错误</th>
+                      <th scope="col" className="sticky-col px-2 py-2.5 font-normal">
+                        项目
+                      </th>
+                      <th scope="col" className="px-2 py-2.5 text-right font-normal">
+                        TS 时间
+                      </th>
+                      <th scope="col" className="px-2 py-2.5 text-right font-normal">
+                        tsrs 时间
+                      </th>
+                      <th scope="col" className="px-2 py-2.5 text-right font-normal">
+                        --fast 时间
+                      </th>
+                      <th scope="col" className="px-2 py-2.5 text-right font-normal">
+                        TS 内存
+                      </th>
+                      <th scope="col" className="px-2 py-2.5 text-right font-normal">
+                        tsrs 内存
+                      </th>
+                      <th scope="col" className="px-2 py-2.5 text-right font-normal">
+                        --fast 内存
+                      </th>
+                      <th scope="col" className="px-2 py-2.5 text-right font-normal">
+                        快（fast）
+                      </th>
+                      <th scope="col" className="px-2 py-2.5 text-right font-normal">
+                        错误
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -365,23 +407,52 @@ export function Bench() {
                         <tr
                           key={p.id}
                           onClick={() => setSel(p.id)}
-                          className={`cursor-pointer border-b border-seam/50 transition-colors ${
+                          className={`cursor-pointer transition-colors ${
                             selected ? 'bg-ember/10' : 'hover:bg-slab'
                           }`}
                         >
-                          <td className="px-2 py-2.5 font-semibold text-bone">{p.name}</td>
-                          <td className="px-2 py-2.5 text-right text-tsgo">{fmtTime(p.ts.t)}</td>
-                          <td className="px-2 py-2.5 text-right text-flare">{fmtTime(p.rs.t)}</td>
-                          <td className="px-2 py-2.5 text-right text-molten">
+                          <th
+                            scope="row"
+                            className={`sticky-col border-b border-seam/50 px-2 py-2 text-left font-semibold ${
+                              selected ? 'bg-slab text-molten' : 'text-bone'
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              aria-pressed={selected}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSel(p.id);
+                              }}
+                              className="cursor-pointer rounded px-1 py-0.5 text-left hover:text-flare"
+                            >
+                              {p.name}
+                            </button>
+                          </th>
+                          <td className="border-b border-seam/50 px-2 py-2.5 text-right text-tsgo">
+                            {fmtTime(p.ts.t)}
+                          </td>
+                          <td className="border-b border-seam/50 px-2 py-2.5 text-right text-flare">
+                            {fmtTime(p.rs.t)}
+                          </td>
+                          <td className="border-b border-seam/50 px-2 py-2.5 text-right text-molten">
                             {fmtTime(p.fast.t)}
                           </td>
-                          <td className="px-2 py-2.5 text-right text-tsgo">{fmtMem(p.ts.m)}</td>
-                          <td className="px-2 py-2.5 text-right text-flare">{fmtMem(p.rs.m)}</td>
-                          <td className="px-2 py-2.5 text-right text-molten">{fmtMem(p.fast.m)}</td>
-                          <td className="px-2 py-2.5 text-right font-bold text-molten">
+                          <td className="border-b border-seam/50 px-2 py-2.5 text-right text-tsgo">
+                            {fmtMem(p.ts.m)}
+                          </td>
+                          <td className="border-b border-seam/50 px-2 py-2.5 text-right text-flare">
+                            {fmtMem(p.rs.m)}
+                          </td>
+                          <td className="border-b border-seam/50 px-2 py-2.5 text-right text-molten">
+                            {fmtMem(p.fast.m)}
+                          </td>
+                          <td className="border-b border-seam/50 px-2 py-2.5 text-right font-bold text-molten">
                             {fmtRatio(p.rtf)}
                           </td>
-                          <td className="px-2 py-2.5 text-right text-acid">{p.errors}</td>
+                          <td className="border-b border-seam/50 px-2 py-2.5 text-right text-acid">
+                            {p.errors}
+                          </td>
                         </tr>
                       );
                     })}
@@ -396,7 +467,7 @@ export function Bench() {
           </Reveal>
 
           <Reveal delay={120} className="min-w-0">
-            <Detail project={active} />
+            <Detail project={active} docPage={docPage} />
           </Reveal>
         </div>
       </div>

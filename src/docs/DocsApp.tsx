@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Nav } from '../components/Nav';
+import { closeDialogWithMotion, prefersReducedMotion } from '../lib/hooks';
 import { docHref } from '../lib/router';
 import { DOC_GROUPS, PAGES, SYNC_DATE } from './registry';
 
@@ -37,7 +38,7 @@ function SidebarLinks({
                   href={docHref(p.slug)}
                   onClick={onNavigate}
                   aria-current={p.slug === slug ? 'page' : undefined}
-                  className={`block rounded-lg border-l-2 px-3 py-2 text-[13.5px] font-semibold transition-colors ${
+                  className={`flex min-h-9 items-center rounded-lg border-l-2 px-3 py-2 text-[13.5px] font-semibold transition-colors ${
                     p.slug === slug
                       ? 'border-ember bg-ember/12 text-flare'
                       : 'border-transparent text-fog hover:bg-slab hover:text-bone'
@@ -61,30 +62,38 @@ function Toc({ slug }: { slug: string }) {
   useEffect(() => {
     const t = window.setTimeout(() => {
       const els = Array.from(document.querySelectorAll<HTMLElement>('.doc-body h2[id]'));
-      setHeads(els.map((e) => ({ id: e.id, text: e.textContent ?? '' })));
+      const list = els.map((e) => ({ id: e.id, text: e.textContent ?? '' }));
+      setHeads(list);
+      setActive(list[0]?.id ?? '');
     }, 60);
     return () => window.clearTimeout(t);
   }, [slug]);
 
   useEffect(() => {
-    if (heads.length === 0) return;
-    const onScroll = () => {
-      let cur = heads[0]?.id ?? '';
-      for (const h of heads) {
-        const el = document.getElementById(h.id);
-        if (el && el.getBoundingClientRect().top <= 140) cur = h.id;
-      }
-      setActive(cur);
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    if (heads.length < 2 || !('IntersectionObserver' in window)) return;
+    const visible = new Set<string>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.add(entry.target.id);
+          else visible.delete(entry.target.id);
+        }
+        const firstVisible = heads.find((h) => visible.has(h.id));
+        if (firstVisible) setActive(firstVisible.id);
+      },
+      { rootMargin: '-18% 0px -65% 0px', threshold: 0 },
+    );
+    for (const h of heads) {
+      const el = document.getElementById(h.id);
+      if (el) io.observe(el);
+    }
+    return () => io.disconnect();
   }, [heads]);
 
   if (heads.length < 2) return null;
   return (
     <nav
-      className="sticky top-24 hidden max-h-[calc(100vh-120px)] overflow-y-auto xl:block"
+      className="sticky top-24 hidden max-h-[calc(100dvh-120px)] overflow-y-auto xl:block"
       aria-label="本页目录"
     >
       <p className="num mb-3 text-[11px] tracking-[0.18em] text-ash uppercase">本页目录</p>
@@ -93,13 +102,20 @@ function Toc({ slug }: { slug: string }) {
           <li key={h.id}>
             <a
               href={`#/docs/${slug}`}
+              aria-current={active === h.id ? 'location' : undefined}
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById(h.id)?.scrollIntoView({ behavior: 'smooth' });
+                const target = document.getElementById(h.id);
+                if (!target) return;
+                target.scrollIntoView({
+                  behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+                });
+                target.focus({ preventScroll: true });
+                setActive(h.id);
               }}
               className={`-ml-px block border-l-2 py-1 pl-3 text-xs leading-snug transition-colors ${
                 active === h.id
-                  ? 'border-ember text-flare'
+                  ? 'border-ember font-semibold text-flare'
                   : 'border-transparent text-ash hover:text-fog'
               }`}
             >
@@ -116,16 +132,51 @@ export function DocsApp({ route }: { route: string }) {
   const slug = route.replace(/^docs\/?/, '') || PAGES[0].slug;
   const page = PAGES.find((p) => p.slug === slug);
   const [query, setQuery] = useState('');
-  const [drawer, setDrawer] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDialogElement | null>(null);
+  const drawerId = useId();
+  const desktopSearchId = useId();
+  const mobileSearchId = useId();
 
   useEffect(() => {
-    setDrawer(false);
+    if (drawerRef.current?.open) {
+      drawerRef.current.removeAttribute('data-closing');
+      drawerRef.current.close();
+    }
+    setDrawerOpen(false);
     document.title = page ? `${page.title} · tsrs 文档` : 'tsrs · TypeScript 编译器的 Rust 实现';
     return () => {
       document.title = 'tsrs · TypeScript 编译器的 Rust 实现';
     };
   }, [slug, page]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const ac = new AbortController();
+    const onChange = () => {
+      if (mq.matches && drawerRef.current?.open) {
+        drawerRef.current.removeAttribute('data-closing');
+        drawerRef.current.close();
+      }
+    };
+    mq.addEventListener('change', onChange, { signal: ac.signal });
+    return () => ac.abort();
+  }, []);
+
+  const openDrawer = () => {
+    const dlg = drawerRef.current;
+    if (!dlg || dlg.open) return;
+    dlg.removeAttribute('data-closing');
+    dlg.showModal();
+    setDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    const dlg = drawerRef.current;
+    if (!dlg || !dlg.open) return;
+    void closeDialogWithMotion(dlg);
+  };
 
   const idx = page ? PAGES.indexOf(page) : -1;
   const prev = idx > 0 ? PAGES[idx - 1] : undefined;
@@ -134,54 +185,112 @@ export function DocsApp({ route }: { route: string }) {
 
   return (
     <>
-      <div className="grain" aria-hidden="true" />
+      <a href="#main-content" className="skip-link visually-hidden">
+        跳到文档正文
+      </a>
+      <div className="grain-wrap" aria-hidden="true">
+        <div className="grain" />
+      </div>
       <Nav docs />
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
         <div className="aurora aurora-blue -top-32 -right-40 h-[460px] w-[460px] opacity-60" />
         <div className="aurora aurora-ember -bottom-48 -left-40 h-[420px] w-[420px] opacity-50" />
       </div>
 
-      {/* 移动端目录栏 */}
-      <div className="sticky top-16 z-40 border-b border-seam bg-coal/90 backdrop-blur-md lg:hidden">
+      {/* 移动端目录触发条 */}
+      <div className="sticky top-16 z-40 mt-16 border-b border-seam bg-coal/90 backdrop-blur-md lg:hidden">
         <button
           type="button"
           className="flex w-full cursor-pointer items-center justify-between px-5 py-3 text-sm font-semibold text-fog"
-          aria-expanded={drawer}
-          onClick={() => setDrawer((v) => !v)}
+          aria-expanded={drawerOpen}
+          aria-controls={drawerId}
+          onClick={() => (drawerOpen ? closeDrawer() : openDrawer())}
         >
           <span>
             <span className="text-ash">文档 / </span>
             {page?.title ?? '未找到'}
           </span>
-          <span className="num text-xs text-flare">{drawer ? '收起 ▲' : '目录 ▼'}</span>
+          <span className="num text-xs text-flare">
+            {drawerOpen ? '收起' : '目录'} <span aria-hidden="true">{drawerOpen ? '▲' : '▼'}</span>
+          </span>
         </button>
-        {drawer && (
-          <div className="max-h-[60vh] overflow-y-auto border-t border-seam bg-soot px-3 py-4">
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="搜索文档…"
-              aria-label="搜索文档"
-              className="mb-4 w-full"
-            />
-            <SidebarLinks slug={slug} query={query} onNavigate={() => setDrawer(false)} />
-          </div>
-        )}
       </div>
 
-      <div className="relative mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-x-10 px-5 md:px-8 lg:grid-cols-[248px_minmax(0,1fr)]">
-        {/* 桌面侧栏 */}
-        <aside className="sticky top-16 hidden max-h-[calc(100vh-64px)] overflow-y-auto pt-8 pb-10 lg:block">
+      {/* 移动端文档抽屉（原生 top-layer dialog） */}
+      <dialog
+        ref={drawerRef}
+        id={drawerId}
+        className="nav-drawer lg:hidden"
+        aria-label="文档目录"
+        onClose={() => {
+          drawerRef.current?.removeAttribute('data-closing');
+          setDrawerOpen(false);
+        }}
+        onCancel={(e) => {
+          if (e.cancelable) {
+            e.preventDefault();
+            closeDrawer();
+          }
+        }}
+        onClick={(e) => {
+          if (e.target === drawerRef.current) closeDrawer();
+        }}
+      >
+        <div className="mb-4 flex items-center justify-between border-b border-seam pb-3">
+          <span className="num text-xs tracking-wider text-ash uppercase">文档目录</span>
+          <button
+            type="button"
+            autoFocus
+            onClick={closeDrawer}
+            aria-label="关闭文档目录"
+            className="num inline-flex h-11 min-w-11 cursor-pointer items-center justify-center rounded-lg border border-edge px-3 text-xs font-semibold text-fog hover:border-flare hover:text-flare"
+          >
+            关闭{' '}
+            <span aria-hidden="true" className="ml-1">
+              ×
+            </span>
+          </button>
+        </div>
+        <search className="mb-4 block">
+          <label htmlFor={mobileSearchId} className="visually-hidden">
+            搜索文档
+          </label>
           <input
+            id={mobileSearchId}
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜索文档…"
-            aria-label="搜索文档"
-            className="mb-5 w-full"
+            className="w-full"
           />
-          <SidebarLinks slug={slug} query={query} />
+        </search>
+        <nav aria-label="文档导航（移动端）">
+          <SidebarLinks slug={slug} query={query} onNavigate={closeDrawer} />
+        </nav>
+      </dialog>
+
+      <div className="relative mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-x-10 px-5 md:px-8 lg:grid-cols-[248px_minmax(0,1fr)] lg:pt-16">
+        {/* 桌面侧栏 */}
+        <aside
+          className="sticky top-16 hidden max-h-[calc(100dvh-64px)] overflow-y-auto pt-8 pb-10 lg:block"
+          aria-label="文档侧栏"
+        >
+          <search className="mb-5 block">
+            <label htmlFor={desktopSearchId} className="visually-hidden">
+              搜索文档
+            </label>
+            <input
+              id={desktopSearchId}
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="搜索文档…"
+              className="w-full"
+            />
+          </search>
+          <nav aria-label="文档导航">
+            <SidebarLinks slug={slug} query={query} />
+          </nav>
           <div className="mt-2 border-t border-seam px-3 pt-4">
             <p className="num text-[11px] leading-relaxed text-ash">
               跟随上游同步 · {SYNC_DATE}
@@ -192,7 +301,7 @@ export function DocsApp({ route }: { route: string }) {
                 rel="noreferrer"
                 target="_blank"
               >
-                oxc-project/tsrs ↗
+                oxc-project/tsrs <span aria-hidden="true">↗</span>
               </a>
             </p>
           </div>
@@ -201,23 +310,35 @@ export function DocsApp({ route }: { route: string }) {
         <div
           className={`grid min-w-0 grid-cols-1 gap-x-10 ${page?.wide ? '' : 'xl:grid-cols-[minmax(0,1fr)_190px]'}`}
         >
-          <main className="doc-body min-w-0 pt-8 pb-16" ref={bodyRef}>
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="doc-body min-w-0 pt-8 pb-16"
+            ref={bodyRef}
+          >
             {page ? (
               <>
-                <p className="num mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ash">
+                <nav
+                  aria-label="面包屑"
+                  className="num mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ash"
+                >
                   <a className="hover:text-flare" href="#/">
                     首页
                   </a>
                   <span aria-hidden="true">/</span>
                   <span>{group?.name}</span>
                   <span aria-hidden="true">/</span>
-                  <span className="text-fog">{page.title}</span>
-                </p>
+                  <span className="text-fog" aria-current="page">
+                    {page.title}
+                  </span>
+                </nav>
                 {!page.bare && (
                   <header className="mb-8">
-                    <h1 className="h2">{page.title}</h1>
+                    <h1 className="h2" tabIndex={-1}>
+                      {page.title}
+                    </h1>
                     {page.lead && (
-                      <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-ash">
+                      <p className="lead-pretty mt-4 max-w-2xl text-[15px] leading-relaxed text-ash">
                         {page.lead}
                       </p>
                     )}
@@ -234,9 +355,12 @@ export function DocsApp({ route }: { route: string }) {
                             'https://github.com/oxc-project/tsrs/blob/main/',
                             '',
                           )}{' '}
-                          ↗
+                          <span aria-hidden="true">↗</span>
                         </a>
-                        <span className="mx-2 text-seam2">·</span>同步于 {SYNC_DATE}
+                        <span className="mx-2 text-seam2" aria-hidden="true">
+                          ·
+                        </span>
+                        同步于 {SYNC_DATE}
                       </p>
                     )}
                   </header>
@@ -253,7 +377,9 @@ export function DocsApp({ route }: { route: string }) {
                       href={docHref(prev.slug)}
                       className="panel group p-4 transition-transform hover:-translate-y-0.5"
                     >
-                      <span className="num text-[11px] text-ash">← 上一页</span>
+                      <span className="num text-[11px] text-ash">
+                        <span aria-hidden="true">← </span>上一页
+                      </span>
                       <span className="mt-1 block font-bold text-fog group-hover:text-flare">
                         {prev.title}
                       </span>
@@ -266,7 +392,9 @@ export function DocsApp({ route }: { route: string }) {
                       href={docHref(next.slug)}
                       className="panel group p-4 text-right transition-transform hover:-translate-y-0.5"
                     >
-                      <span className="num text-[11px] text-ash">下一页 →</span>
+                      <span className="num text-[11px] text-ash">
+                        下一页 <span aria-hidden="true">→</span>
+                      </span>
                       <span className="mt-1 block font-bold text-fog group-hover:text-flare">
                         {next.title}
                       </span>
@@ -276,8 +404,12 @@ export function DocsApp({ route }: { route: string }) {
               </>
             ) : (
               <div className="py-20 text-center">
-                <p className="num text-6xl font-extrabold text-seam2">404</p>
-                <p className="mt-4 text-lg font-bold text-bone">这一页不存在。</p>
+                <p className="num text-6xl font-extrabold text-seam2" aria-hidden="true">
+                  404
+                </p>
+                <h1 className="mt-4 text-lg font-bold text-bone" tabIndex={-1}>
+                  这一页不存在。
+                </h1>
                 <p className="mt-2 text-sm text-ash">地址可能拼错了，或者上游还没有这份文档。</p>
                 <a className="btn-fire mt-8 inline-flex" href={docHref(PAGES[0].slug)}>
                   回到文档首页

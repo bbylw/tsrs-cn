@@ -2,7 +2,7 @@ import { Cmd, Reveal } from './ui';
 
 export function Credits() {
   return (
-    <section className="relative py-14 md:py-20">
+    <section className="deferred-section relative py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <Reveal className="flex flex-wrap items-baseline gap-x-10 gap-y-4">
           <p className="tag">赞助与致谢</p>
@@ -16,7 +16,7 @@ export function Credits() {
           </div>
         </Reveal>
         <Reveal delay={100}>
-          <p className="mt-6 max-w-xl text-sm leading-relaxed text-ash">
+          <p className="lead-pretty mt-6 max-w-xl text-sm leading-relaxed text-ash">
             Depot 为持续集成提供机器；Owner.com 赞助了项目的初期工作。我们不收 Pull
             Request——没有足够精力审查，但 issue 是开的。
           </p>
@@ -28,7 +28,11 @@ export function Credits() {
 
 export function FinalCta() {
   return (
-    <section id="install" className="relative overflow-hidden py-20 md:py-28">
+    <section
+      id="install"
+      tabIndex={-1}
+      className="deferred-section relative overflow-hidden py-20 md:py-28"
+    >
       <div
         className="absolute inset-0 bg-gradient-to-br from-ember/18 via-coal to-cobalt/15"
         aria-hidden="true"
@@ -72,7 +76,7 @@ export function FinalCta() {
 
 export function Foot() {
   return (
-    <footer className="border-t border-seam bg-soot/60">
+    <footer className="deferred-section border-t border-seam bg-soot/60">
       <div className="mx-auto grid grid-cols-1 max-w-7xl gap-4 px-5 py-10 md:grid-cols-2 md:px-8 lg:grid-cols-4">
         <Reveal className="panel p-5">
           <p className="num mb-3 text-[11px] tracking-wider text-ash uppercase">许可证</p>
@@ -119,7 +123,7 @@ export function Foot() {
             rel="noreferrer"
             target="_blank"
           >
-            issues →
+            issues <span aria-hidden="true">→</span>
           </a>
           <p className="num mt-4 border-t border-seam pt-3 text-xs text-ash">
             本站由 Vite+ 构建
@@ -132,7 +136,7 @@ export function Foot() {
             href="https://github.com/oxc-project/tsrs/issues"
             rel="noreferrer"
             target="_blank"
-            className="group flex flex-1 items-center justify-between rounded-xl bg-gradient-to-br from-flare via-ember to-[#d63a0a] p-5 text-white transition-transform hover:-translate-y-1"
+            className="group flex flex-1 items-center justify-between rounded-xl bg-gradient-to-br from-[#df450d] via-[#c63406] to-[#a82903] p-5 text-white transition-transform hover:-translate-y-1"
           >
             <span className="text-lg leading-snug font-extrabold">
               报 bug，

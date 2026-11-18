@@ -99,7 +99,7 @@ function StatCard({ stat, start, delay }: { stat: Stat; start: boolean; delay: n
 export function Stats() {
   const { ref, inView } = useInView<HTMLDivElement>('0px 0px -15% 0px');
   return (
-    <section className="relative py-16 md:py-24">
+    <section className="deferred-section relative py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-6 md:mb-14">
           <h2 className="h2">
@@ -107,7 +107,7 @@ export function Stats() {
             <br />
             三份时间。
           </h2>
-          <p className="max-w-sm text-sm leading-relaxed text-ash">
+          <p className="lead-pretty max-w-sm text-sm leading-relaxed text-ash">
             前四个数字来自上游发布记分牌：2026-10-28，Apple M3 Max（14 核 / 36 GB），19 个项目，npm
             发布二进制。watch 与 lint 数字各有出处，页内逐条标注。
           </p>

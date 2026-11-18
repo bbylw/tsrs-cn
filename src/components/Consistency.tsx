@@ -2,19 +2,25 @@ import { useState } from 'react';
 import { BENCH_META, CONFORMANCE, PROJECTS } from '../data/bench';
 import { Reveal, SectionHead } from './ui';
 
-export function Consistency() {
+export function Consistency({ docPage = false }: { docPage?: boolean }) {
   const [open, setOpen] = useState<string | null>(null);
   const openProject = PROJECTS.find((p) => p.id === open);
   const totalErrors = PROJECTS.reduce((n, p) => n + p.errors, 0);
+  const CardHeading = docPage ? 'h2' : 'h3';
 
   return (
-    <section id="consistency" className="relative py-16 md:py-24">
+    <section
+      id="consistency"
+      tabIndex={-1}
+      className={`${docPage ? '' : 'deferred-section '}relative py-16 md:py-24`}
+    >
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="aurora aurora-blue top-20 -right-48 h-[460px] w-[460px]" />
       </div>
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHead
           tag="Conformance"
+          headingLevel={docPage ? 'h1' : 'h2'}
           title={
             <>
               <span className="text-acid">19 / 19，诊断逐项相同。</span>
@@ -34,7 +40,10 @@ export function Consistency() {
           <div>
             <Reveal className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2">
               <p className="num text-xs text-ash">
-                <i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-acid align-baseline" />
+                <i
+                  className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-acid align-baseline"
+                  aria-hidden="true"
+                />
                 全部相同 · 数字为该项目错误数
               </p>
               <p className="num text-xs text-ash">TypeScript = tsrs = tsrs --fast</p>
@@ -49,7 +58,7 @@ export function Consistency() {
                       type="button"
                       onClick={() => setOpen(expanded ? null : p.id)}
                       aria-expanded={expanded}
-                      className={`flex w-full cursor-pointer flex-col gap-1.5 rounded-lg border border-acid/25 bg-acid/6 p-3 text-left text-acid transition-all hover:-translate-y-0.5 hover:border-acid/50 ${
+                      className={`flex w-full cursor-pointer flex-col gap-1.5 rounded-lg border border-acid/25 bg-acid/6 p-3 text-left text-acid transition-colors hover:-translate-y-0.5 hover:border-acid/50 ${
                         expanded ? 'ring-2 ring-acid/60' : ''
                       }`}
                     >
@@ -57,7 +66,8 @@ export function Consistency() {
                         {p.name}
                       </span>
                       <span className="num text-[11px]">
-                        ✓ {p.errors === 0 ? '0 错误 · 干净' : `${p.errors} 条错误 · 相同`}
+                        <span aria-hidden="true">✓ </span>
+                        {p.errors === 0 ? '0 错误 · 干净' : `${p.errors} 条错误 · 相同`}
                       </span>
                     </button>
                   </Reveal>
@@ -89,16 +99,18 @@ export function Consistency() {
 
           <div className="space-y-5">
             <Reveal delay={80} className="panel p-5">
-              <h3 className="mb-2 font-bold text-bone">默认模式就是 TypeScript 的行为。</h3>
-              <p className="text-sm leading-relaxed text-ash">
+              <CardHeading className="mb-2 font-bold text-bone">
+                默认模式就是 TypeScript 的行为。
+              </CardHeading>
+              <p className="lead-pretty text-sm leading-relaxed text-ash">
                 0.20.0 起，默认沿用 pinned TypeScript 的 4 个 checker、Go 分配与 checker 历史、eager
                 members。TypeScript 本身对 checker 数量与文件顺序敏感的地方，tsrs
                 原样保留——一致性优先，加速靠 Rust 本身。
               </p>
             </Reveal>
             <Reveal delay={140} className="panel border-warn/30 p-5">
-              <h3 className="mb-2 font-bold text-warn">--fast 的已知边界。</h3>
-              <p className="text-sm leading-relaxed text-ash">
+              <CardHeading className="mb-2 font-bold text-warn">--fast 的已知边界。</CardHeading>
+              <p className="lead-pretty text-sm leading-relaxed text-ash">
                 激进的 checker 分配与 lazy members 在少数依赖 checker
                 历史或推导深度的场景可能改变诊断， 上游在{' '}
                 <a
@@ -113,8 +125,8 @@ export function Consistency() {
               </p>
             </Reveal>
             <Reveal delay={200} className="panel p-5">
-              <h3 className="mb-2 font-bold text-bone">证据在仓库里。</h3>
-              <p className="text-sm leading-relaxed text-ash">
+              <CardHeading className="mb-2 font-bold text-bone">证据在仓库里。</CardHeading>
+              <p className="lead-pretty text-sm leading-relaxed text-ash">
                 哪些功能已支持、哪些还有差距，写在{' '}
                 <a
                   className="link-u"
@@ -153,7 +165,7 @@ export function Consistency() {
                 {c.big}
                 <span className="ml-2 text-sm font-normal text-molten">{c.unit}</span>
               </p>
-              <p className="text-[13px] leading-relaxed text-ash">{c.detail}</p>
+              <p className="lead-pretty text-[13px] leading-relaxed text-ash">{c.detail}</p>
             </Reveal>
           ))}
         </div>

@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { prefersReducedMotion } from './hooks';
 
 /** '#/docs/cli' -> 'docs/cli'; anything else (anchors, '', '#/') -> ''. */
 const parse = () => {
@@ -8,30 +10,78 @@ const parse = () => {
 
 export function useRoute() {
   const [route, setRoute] = useState(parse);
+  const routeRef = useRef(route);
+  routeRef.current = route;
+
   useEffect(() => {
-    const onHash = () => setRoute(parse());
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    const ac = new AbortController();
+    const onHash = () => {
+      const next = parse();
+      if (next === routeRef.current) return;
+      routeRef.current = next;
+
+      if (
+        typeof document !== 'undefined' &&
+        'startViewTransition' in document &&
+        !prefersReducedMotion()
+      ) {
+        (
+          document as Document & { startViewTransition: (cb: () => void) => unknown }
+        ).startViewTransition(() => {
+          flushSync(() => setRoute(next));
+        });
+      } else {
+        setRoute(next);
+      }
+    };
+
+    window.addEventListener('hashchange', onHash, { signal: ac.signal });
+    return () => ac.abort();
   }, []);
+
   return route;
 }
 
 export const docHref = (slug: string) => `#/docs/${slug}`;
 
-/** Scroll management on route change: docs pages start at top; landing anchors land below the nav. */
+/** Scroll & focus management on route change: docs pages start at top and route focus to the new heading. */
 export function useRouteScroll(route: string) {
+  const isFirst = useRef(true);
+
   useEffect(() => {
+    const wasFirst = isFirst.current;
+    isFirst.current = false;
+
     if (route) {
       window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      if (!wasFirst) {
+        requestAnimationFrame(() => {
+          const target = document.querySelector<HTMLElement>(
+            'main h1[tabindex="-1"], main h1, #main-content',
+          );
+          target?.focus({ preventScroll: true });
+        });
+      }
       return;
     }
+
     const anchor = window.location.hash.slice(1);
     if (anchor && !anchor.startsWith('/')) {
       requestAnimationFrame(() => {
-        document.getElementById(anchor)?.scrollIntoView();
+        const el = document.getElementById(anchor);
+        el?.scrollIntoView();
+        if (!wasFirst) el?.focus({ preventScroll: true });
       });
     } else {
       window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      if (!wasFirst) {
+        requestAnimationFrame(() => {
+          const target = document.querySelector<HTMLElement>(
+            'main h1[tabindex="-1"], main h1, #main-content',
+          );
+          target?.focus({ preventScroll: true });
+        });
+      }
     }
   }, [route]);
 }

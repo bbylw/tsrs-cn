@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { LINT_META, LINT_ROWS, fmtTime } from '../data/bench';
 import { docHref } from '../lib/router';
 import { CopyButton, Reveal, SectionHead } from './ui';
@@ -20,8 +21,9 @@ const LINT_LANES = [
 const width = (v: number, max: number) => (Math.log1p(v) / Math.log1p(max)) * 100;
 
 export function FastLint() {
+  const tableCaptionId = useId();
   return (
-    <section id="fast" className="relative py-16 md:py-24">
+    <section id="fast" tabIndex={-1} className="deferred-section relative py-16 md:py-24">
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="aurora aurora-acid top-10 -right-48 h-[440px] w-[440px]" />
       </div>
@@ -47,30 +49,49 @@ export function FastLint() {
             <div className="flex items-center justify-between gap-3 border-b border-seam px-5 py-3.5">
               <h3 className="font-bold text-bone">一个开关，两类默认值</h3>
               <a className="link-u num text-xs font-semibold" href={docHref('fast')}>
-                完整对照 →
+                完整对照 <span aria-hidden="true">→</span>
               </a>
             </div>
-            <div className="doc-scroll overflow-x-auto">
+            <div
+              tabIndex={0}
+              role="region"
+              aria-labelledby={tableCaptionId}
+              className="doc-scroll overflow-x-auto"
+            >
               <table className="num w-full min-w-[440px] text-[12.5px]">
+                <caption id={tableCaptionId} className="visually-hidden">
+                  tsrs 默认模式与 --fast 性能预设配置项对照表
+                </caption>
                 <thead>
                   <tr className="text-left text-[11px] text-ash">
-                    <th className="px-5 py-2.5 font-normal"> </th>
-                    <th className="py-2.5 pr-4 font-normal text-tsgo">默认（= TypeScript）</th>
-                    <th className="py-2.5 pr-5 font-normal text-molten">--fast</th>
+                    <th scope="col" className="sticky-col px-5 py-2.5 font-normal">
+                      配置项
+                    </th>
+                    <th scope="col" className="py-2.5 pr-4 font-normal text-tsgo">
+                      默认（= TypeScript）
+                    </th>
+                    <th scope="col" className="py-2.5 pr-5 font-normal text-molten">
+                      --fast
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {PRESET_ROWS.map((r) => (
-                    <tr key={r.what} className="border-t border-seam/50">
-                      <td className="px-5 py-2.5 whitespace-nowrap text-fog">{r.what}</td>
-                      <td className="py-2.5 pr-4 text-ash">{r.def}</td>
-                      <td className="py-2.5 pr-5 text-bone">{r.fast}</td>
+                    <tr key={r.what}>
+                      <th
+                        scope="row"
+                        className="sticky-col border-t border-seam/50 px-5 py-2.5 text-left font-normal whitespace-nowrap text-fog"
+                      >
+                        {r.what}
+                      </th>
+                      <td className="border-t border-seam/50 py-2.5 pr-4 text-ash">{r.def}</td>
+                      <td className="border-t border-seam/50 py-2.5 pr-5 text-bone">{r.fast}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="border-t border-seam px-5 py-3.5 text-[13px] leading-relaxed text-ash">
+            <p className="lead-pretty border-t border-seam px-5 py-3.5 text-[13px] leading-relaxed text-ash">
               19 个项目上 --fast 快 1.71×–6.62×，诊断与 TypeScript 逐项相同。少数依赖 checker
               历史的场景有已知边界，文档里逐个记录。
             </p>
@@ -80,18 +101,23 @@ export function FastLint() {
             <div className="flex items-center justify-between gap-3 border-b border-seam px-5 py-3.5">
               <h3 className="font-bold text-bone">lint + 类型检查，一次跑完</h3>
               <a className="link-u num text-xs font-semibold" href={docHref('lint')}>
-                接入 Oxlint →
+                接入 Oxlint <span aria-hidden="true">→</span>
               </a>
             </div>
             <div className="px-5 py-4">
               <div className="flex items-center gap-3 rounded-lg border border-seam bg-coal/80 px-4 py-3">
-                <span className="num select-none text-ember">$</span>
+                <span className="num select-none text-ember" aria-hidden="true">
+                  $
+                </span>
                 <code className="num min-w-0 flex-1 overflow-x-auto text-xs whitespace-nowrap text-bone">
                   TSRS_FAST=1 pnpm exec oxlint --type-aware --type-check
                 </code>
-                <CopyButton text="TSRS_FAST=1 pnpm exec oxlint --type-aware --type-check" />
+                <CopyButton
+                  text="TSRS_FAST=1 pnpm exec oxlint --type-aware --type-check"
+                  targetLabel="Oxlint 命令"
+                />
               </div>
-              <p className="mt-3 text-[13px] leading-relaxed text-ash">
+              <p className="lead-pretty mt-3 text-[13px] leading-relaxed text-ash">
                 tsrs-lint 实现 tsgolint 的全部 61 条规则，Oxlint ≥ 1.92.0 自动发现它。 下面是
                 Outline 的 7 条规则、8 核下的墙钟时间：
               </p>
@@ -145,7 +171,7 @@ export function FastLint() {
                 <br />
                 {LINT_META.caveat}{' '}
                 <a className="link-u" href={LINT_META.source} rel="noreferrer" target="_blank">
-                  来源 ↗
+                  来源 <span aria-hidden="true">↗</span>
                 </a>
               </p>
             </div>

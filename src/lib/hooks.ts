@@ -3,6 +3,60 @@ import { useEffect, useRef, useState } from 'react';
 export const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+let supportsDisplayTransition: boolean | undefined;
+
+function canTransitionDisplay() {
+  if (supportsDisplayTransition !== undefined) return supportsDisplayTransition;
+  if (
+    typeof window === 'undefined' ||
+    !window.CSS?.supports?.('transition-behavior', 'allow-discrete') ||
+    !document.body
+  ) {
+    return false;
+  }
+  const probe = document.createElement('div');
+  probe.style.cssText = 'transition: display 1s allow-discrete !important; display: block;';
+  document.body.appendChild(probe);
+  if (getComputedStyle(probe).display !== 'block') {
+    probe.remove();
+    supportsDisplayTransition = false;
+    return false;
+  }
+  probe.style.display = 'none';
+  supportsDisplayTransition = getComputedStyle(probe).display === 'block';
+  probe.remove();
+  return supportsDisplayTransition;
+}
+
+/** Detects whether top-layer elements animate out natively via `overlay` + discrete `display`. */
+export function supportsTopLayerExit() {
+  return (
+    typeof window !== 'undefined' &&
+    Boolean(window.CSS?.supports?.('overlay', 'auto')) &&
+    canTransitionDisplay()
+  );
+}
+
+/** Closes a modal `<dialog>` with an exit transition fallback when `overlay` is unsupported. */
+export async function closeDialogWithMotion(dialog: HTMLDialogElement) {
+  if (!dialog.open) return;
+  if (prefersReducedMotion() || supportsTopLayerExit()) {
+    dialog.close();
+    return;
+  }
+  dialog.setAttribute('data-closing', '');
+  const animations = dialog.getAnimations({ subtree: true });
+  if (animations.length > 0) {
+    await Promise.race([
+      Promise.allSettled(animations.map((a) => a.finished)),
+      new Promise<void>((resolve) => window.setTimeout(resolve, 400)),
+    ]);
+  }
+  if (!dialog.hasAttribute('data-closing')) return;
+  dialog.removeAttribute('data-closing');
+  if (dialog.open) dialog.close();
+}
+
 /** Adds `.on` when the element scrolls into view (once). */
 export function useReveal<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
@@ -139,21 +193,66 @@ export function useRace(lanes: number[], wallSeconds = 4) {
   };
 }
 
-/** Tracks which section id is currently nearest the top of the viewport. */
-export function useScrollSpy(ids: string[]) {
+/**
+ * Tracks the currently active section id for scrollspy navigation.
+ * Uses CSS `scroll-target-group: auto` + `:target-current` where supported to sync `aria-current`,
+ * falling back to `IntersectionObserver` where unsupported.
+ */
+export function useScrollSpy(ids: string[], enabled = true) {
   const [active, setActive] = useState('');
+  const idsKey = ids.join('|');
+
   useEffect(() => {
-    const onScroll = () => {
-      let current = '';
-      for (const id of ids) {
-        const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= 120) current = id;
-      }
-      setActive(current);
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [ids]);
+    if (!enabled || ids.length === 0) {
+      setActive('');
+      return;
+    }
+
+    const supportsNative = typeof CSS !== 'undefined' && CSS.supports('scroll-target-group: auto');
+
+    if (supportsNative) {
+      const ac = new AbortController();
+      const syncFromNative = () => {
+        const currentLink = document.querySelector<HTMLAnchorElement>('.nav-spy a:target-current');
+        const href = currentLink?.getAttribute('href') ?? '';
+        setActive(href.startsWith('#') ? href.slice(1) : '');
+      };
+      const raf = requestAnimationFrame(syncFromNative);
+      document.addEventListener('scrollend', syncFromNative, { signal: ac.signal, passive: true });
+      return () => {
+        cancelAnimationFrame(raf);
+        ac.abort();
+      };
+    }
+
+    if (!('IntersectionObserver' in window)) return;
+
+    const visible = new Set<string>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.add(entry.target.id);
+          else visible.delete(entry.target.id);
+        }
+        let current = '';
+        for (let i = ids.length - 1; i >= 0; i--) {
+          if (visible.has(ids[i])) {
+            current = ids[i];
+            break;
+          }
+        }
+        setActive(current);
+      },
+      { rootMargin: '-25% 0px -60% 0px', threshold: 0 },
+    );
+
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) io.observe(el);
+    }
+
+    return () => io.disconnect();
+  }, [idsKey, enabled]);
+
   return active;
 }

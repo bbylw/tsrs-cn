@@ -81,15 +81,24 @@ function SplitDemo() {
             <h3 className="text-lg font-bold text-bone">输入一半</h3>
             <span className="chip">sample.ts · strict · noEmit</span>
           </div>
-          <pre className="num overflow-x-auto text-[13px] leading-7 text-fog">
-            {SAMPLE.map((line, i) => (
-              <span key={i} className="block">
-                <span className="inline-block w-8 select-none text-seam2">{i + 1}</span>
-                <span className={i === 0 || i === 3 || i === 6 ? 'text-bone' : undefined}>
-                  {line || ' '}
+          <pre
+            tabIndex={0}
+            role="region"
+            aria-label="sample.ts 示例代码"
+            className="num overflow-x-auto text-[13px] leading-7 text-fog"
+          >
+            <code>
+              {SAMPLE.map((line, i) => (
+                <span key={i} className="block">
+                  <span className="inline-block w-8 select-none text-seam2" aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  <span className={i === 0 || i === 3 || i === 6 ? 'text-bone' : undefined}>
+                    {line || ' '}
+                  </span>
                 </span>
-              </span>
-            ))}
+              ))}
+            </code>
           </pre>
         </div>
 
@@ -102,7 +111,17 @@ function SplitDemo() {
               onClick={run}
               disabled={phase === 'running'}
             >
-              {phase === 'running' ? '检查中…' : phase === 'done' ? '⟳ 再跑一遍' : '▶ 运行 tsrs'}
+              {phase === 'running' ? (
+                '检查中…'
+              ) : phase === 'done' ? (
+                <>
+                  <span aria-hidden="true">⟳ </span>再跑一遍
+                </>
+              ) : (
+                <>
+                  <span aria-hidden="true">▶ </span>运行 tsrs
+                </>
+              )}
             </button>
           </div>
 
@@ -147,7 +166,7 @@ function SplitDemo() {
             </div>
           )}
 
-          <p className="mt-4 text-xs leading-relaxed text-ash">
+          <p className="lead-pretty mt-4 text-xs leading-relaxed text-ash">
             同一份 sample.ts、同一份 tsconfig。最新基准的 19 个项目上，三份编译器的诊断全部一致。
           </p>
         </div>
@@ -160,7 +179,7 @@ export function Quickstart() {
   const [pm, setPm] = useState<Pm>('pnpm');
 
   return (
-    <section id="start" className="relative py-16 md:py-24">
+    <section id="start" tabIndex={-1} className="deferred-section relative py-16 md:py-24">
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="aurora aurora-blue bottom-0 -left-48 h-[420px] w-[420px]" />
       </div>
@@ -175,7 +194,7 @@ export function Quickstart() {
           lead="它是替代品，不是新工具：同一条命令、同一份 tsconfig，把可执行文件换成 tsrs。默认行为对齐 TypeScript；加 --fast 打开性能预设。编辑器里通过 LSP 接上。"
         />
 
-        <Reveal className="mb-6 flex items-center gap-3">
+        <Reveal className="mb-6 flex flex-wrap items-center gap-3">
           <span className="num text-xs text-ash">包管理器</span>
           <div className="seg seg-blue" role="group" aria-label="包管理器">
             {PMS.map((p) => (
@@ -188,10 +207,12 @@ export function Quickstart() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Reveal className="panel flex flex-col p-5">
-            <p className="num mb-1 text-4xl font-bold text-seam2">01</p>
+            <p className="num mb-1 text-4xl font-bold text-seam2" aria-hidden="true">
+              01
+            </p>
             <h3 className="mb-3 text-lg font-bold text-bone">先装上它。</h3>
             <Cmd text={addCmd(pm)} />
-            <p className="mt-4 text-sm leading-relaxed text-ash">
+            <p className="lead-pretty mt-4 text-sm leading-relaxed text-ash">
               <code className="num text-molten">@next</code> 指向 7.1.0-beta.tsrs2。包本身只是入口，
               二进制按平台分发：macOS arm64/x64、Linux x64/arm64（gnu 与 musl）、Windows
               x64/arm64，共八个原生包。没有预编译二进制的平台，用{' '}
@@ -200,7 +221,9 @@ export function Quickstart() {
           </Reveal>
 
           <Reveal delay={90} className="panel flex flex-col p-5">
-            <p className="num mb-1 text-4xl font-bold text-seam2">02</p>
+            <p className="num mb-1 text-4xl font-bold text-seam2" aria-hidden="true">
+              02
+            </p>
             <h3 className="mb-3 text-lg font-bold text-bone">再把 tsc 换掉。</h3>
             <Cmd text={runCmd(pm)} />
             <p className="mt-4 mb-2 text-sm leading-relaxed text-ash">
@@ -219,20 +242,24 @@ export function Quickstart() {
           </Reveal>
 
           <Reveal delay={180} className="panel flex flex-col p-5">
-            <p className="num mb-1 text-4xl font-bold text-seam2">03</p>
+            <p className="num mb-1 text-4xl font-bold text-seam2" aria-hidden="true">
+              03
+            </p>
             <h3 className="mb-3 text-lg font-bold text-bone">然后比对输出。</h3>
             <div className="flex items-center gap-3 rounded-lg border border-seam bg-coal/80 px-4 py-3">
-              <span className="num select-none text-ember">$</span>
+              <span className="num select-none text-ember" aria-hidden="true">
+                $
+              </span>
               <code className="num min-w-0 flex-1 overflow-x-auto text-[12px] whitespace-nowrap text-bone">
                 diff &lt;(tsc --noEmit) &lt;(tsrs --noEmit)
               </code>
-              <CopyButton text="diff <(tsc --noEmit) <(tsrs --noEmit)" />
+              <CopyButton text="diff <(tsc --noEmit) <(tsrs --noEmit)" targetLabel="diff 命令" />
             </div>
-            <p className="mt-4 text-sm leading-relaxed text-ash">
+            <p className="lead-pretty mt-4 text-sm leading-relaxed text-ash">
               最新一轮基准里，<b className="text-fog">19 个项目的 diff 全是空的</b>
               ——包括 webpack 的 840 条、vscode 的 371 条真实错误，文件、位置、错误码逐项相同。
             </p>
-            <p className="mt-3 text-sm leading-relaxed text-ash">
+            <p className="lead-pretty mt-3 text-sm leading-relaxed text-ash">
               还跑 Oxlint？tsrs-lint 让 type-aware lint 与类型检查一次跑完，
               <a className="link-u font-semibold" href={docHref('lint')}>
                 看快速模式与 lint

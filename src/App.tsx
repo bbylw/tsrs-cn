@@ -20,9 +20,14 @@ export default function App() {
 
   return (
     <>
-      <div className="grain" aria-hidden="true" />
+      <a href="#main-content" className="skip-link visually-hidden">
+        跳到主要内容
+      </a>
+      <div className="grain-wrap" aria-hidden="true">
+        <div className="grain" />
+      </div>
       <Nav />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <Hero />
         <Stats />
         <Bench />

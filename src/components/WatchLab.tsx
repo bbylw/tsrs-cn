@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { WATCH, WATCH_EXTRA, WATCH_META } from '../data/bench';
 import { useRace } from '../lib/hooks';
 import { Reveal, SectionHead } from './ui';
@@ -31,8 +31,9 @@ const EDIT_SNIPPETS: Record<string, { file: string; before: string; after: strin
   },
 };
 
-export function WatchLab() {
+export function WatchLab({ docPage = false }: { docPage?: boolean }) {
   const [idx, setIdx] = useState(2);
+  const tableCaptionId = useId();
   const row = WATCH[idx];
   const race = useRace([row.tsgo ?? 1, row.tsrs ?? 1], 3.2);
   const [edited, setEdited] = useState(false);
@@ -56,13 +57,18 @@ export function WatchLab() {
   const ratio = row.tsgo && row.tsrs ? Math.round(row.tsgo / row.tsrs) : null;
 
   return (
-    <section id="watch" className="relative py-16 md:py-24">
+    <section
+      id="watch"
+      tabIndex={-1}
+      className={`${docPage ? '' : 'deferred-section '}relative py-16 md:py-24`}
+    >
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="aurora aurora-ember top-1/3 -left-48 h-[440px] w-[440px]" />
       </div>
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHead
           tag="--watch · vscode · src/ 9.4k files"
+          headingLevel={docPage ? 'h1' : 'h2'}
           title={
             <>
               改一行，<span className="fire-text">等 59 毫秒。</span>
@@ -98,8 +104,10 @@ export function WatchLab() {
             <div className="px-4 py-5 md:px-6">
               <div className="mb-5 rounded-lg border border-seam bg-coal/80 p-4">
                 <p className="num mb-2 text-[11px] text-ash">{snippet.file} · 保存即触发</p>
-                <p className="num text-sm">
-                  <span className="mr-3 select-none text-seam2">42</span>
+                <p className="num overflow-x-auto text-sm">
+                  <span className="mr-3 select-none text-seam2" aria-hidden="true">
+                    42
+                  </span>
                   <span className={edited ? 'text-bone' : 'text-ash'}>
                     {edited ? snippet.after : snippet.before}
                   </span>
@@ -140,11 +148,15 @@ export function WatchLab() {
                           lane.done ? (lane.cls === 'rs' ? 'text-acid' : 'text-fog') : 'text-ash'
                         }
                       >
-                        {lane.done
-                          ? `✓ 本轮完成 · ${lane.label}`
-                          : race.running
-                            ? '检查中…'
-                            : '等待编辑'}
+                        {lane.done ? (
+                          <>
+                            <span aria-hidden="true">✓ </span>本轮完成 · {lane.label}
+                          </>
+                        ) : race.running ? (
+                          '检查中…'
+                        ) : (
+                          '等待编辑'
+                        )}
                       </span>
                     </div>
                     <div className="lane h-4">
@@ -158,7 +170,9 @@ export function WatchLab() {
               </div>
 
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-seam pt-4">
-                <p className="max-w-md text-[13px] leading-relaxed text-ash">{row.how}</p>
+                <p className="lead-pretty max-w-md text-[13px] leading-relaxed text-ash">
+                  {row.how}
+                </p>
                 <div className="flex items-center gap-3">
                   {ratio && (
                     <span
@@ -172,7 +186,8 @@ export function WatchLab() {
                     className="btn-fire !px-5 !py-2.5 text-sm"
                     onClick={() => trigger()}
                   >
-                    {race.running ? '⟳ 再改一行' : '✎ 触发一次编辑'}
+                    <span aria-hidden="true">{race.running ? '⟳ ' : '✎ '}</span>
+                    {race.running ? '再改一行' : '触发一次编辑'}
                   </button>
                 </div>
               </div>
@@ -192,7 +207,7 @@ export function WatchLab() {
                   tsrs {WATCH_EXTRA.rss.tsrs}
                 </span>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-ash">
+              <p className="lead-pretty mt-2 text-xs leading-relaxed text-ash">
                 -b --watch 增量构建：tsrs {WATCH_EXTRA.rss.buildTsrs} · tsgo{' '}
                 {WATCH_EXTRA.rss.buildTsgo}。分支往返 8 轮（4,037 个文件改写）后，泄漏修复把 RSS
                 增长从每轮 +1.85 GB 压到约 0.5 GB。
@@ -203,27 +218,56 @@ export function WatchLab() {
               <p className="num mb-3 text-[11px] tracking-wider text-ash uppercase">
                 全部读数 · --watch 与 -b --watch
               </p>
-              <div className="doc-scroll overflow-x-auto">
+              <div
+                tabIndex={0}
+                role="region"
+                aria-labelledby={tableCaptionId}
+                className="doc-scroll overflow-x-auto"
+              >
                 <table className="num w-full min-w-[420px] text-[12px]">
+                  <caption id={tableCaptionId} className="visually-hidden">
+                    --watch 与 -b --watch 五类编辑场景延迟对照表
+                  </caption>
                   <thead>
                     <tr className="text-left text-[11px] text-ash">
-                      <th className="pb-2 pr-2 font-normal">场景</th>
-                      <th className="pb-2 text-right font-normal">tsrs</th>
-                      <th className="pb-2 text-right font-normal">tsgo</th>
-                      <th className="pb-2 text-right font-normal">-b tsrs</th>
-                      <th className="pb-2 text-right font-normal">-b tsgo</th>
+                      <th scope="col" className="sticky-col pb-2 pr-2 font-normal">
+                        场景
+                      </th>
+                      <th scope="col" className="pb-2 text-right font-normal">
+                        tsrs
+                      </th>
+                      <th scope="col" className="pb-2 text-right font-normal">
+                        tsgo
+                      </th>
+                      <th scope="col" className="pb-2 text-right font-normal">
+                        -b tsrs
+                      </th>
+                      <th scope="col" className="pb-2 text-right font-normal">
+                        -b tsgo
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {WATCH.map((w) => (
-                      <tr key={w.id} className="border-t border-seam/50">
-                        <td className="py-2 pr-2 text-fog">{w.label}</td>
-                        <td className="py-2 text-right text-flare">
+                      <tr key={w.id}>
+                        <th
+                          scope="row"
+                          className="sticky-col border-t border-seam/50 py-2 pr-2 text-left font-normal text-fog"
+                        >
+                          {w.label}
+                        </th>
+                        <td className="border-t border-seam/50 py-2 text-right text-flare">
                           {w.tsrsLabel.split(' · ')[0]}
                         </td>
-                        <td className="py-2 text-right text-tsgo">{w.tsgoLabel.split(' · ')[0]}</td>
-                        <td className="py-2 text-right text-flare/80">{w.buildTsrs}</td>
-                        <td className="py-2 text-right text-tsgo/80">{w.buildTsgo}</td>
+                        <td className="border-t border-seam/50 py-2 text-right text-tsgo">
+                          {w.tsgoLabel.split(' · ')[0]}
+                        </td>
+                        <td className="border-t border-seam/50 py-2 text-right text-flare/80">
+                          {w.buildTsrs}
+                        </td>
+                        <td className="border-t border-seam/50 py-2 text-right text-tsgo/80">
+                          {w.buildTsgo}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

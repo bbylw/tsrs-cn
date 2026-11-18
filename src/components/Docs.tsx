@@ -55,7 +55,7 @@ const UPSTREAM = [
 
 export function Docs() {
   return (
-    <section id="docs" className="relative py-16 md:py-24">
+    <section id="docs" tabIndex={-1} className="deferred-section relative py-16 md:py-24">
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="aurora aurora-acid bottom-0 -right-48 h-[420px] w-[420px]" />
       </div>
@@ -113,11 +113,11 @@ export function Docs() {
               rel="noreferrer"
               target="_blank"
             >
-              {u.name} ↗
+              {u.name} <span aria-hidden="true">↗</span>
             </a>
           ))}
           <a className="btn-ghost ml-auto !px-4 !py-2 text-sm" href={docHref('introduction')}>
-            打开文档 →
+            打开文档 <span aria-hidden="true">→</span>
           </a>
         </Reveal>
       </div>

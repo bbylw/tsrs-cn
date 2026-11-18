@@ -3,13 +3,13 @@ import { Consistency } from '../../components/Consistency';
 import { WatchLab } from '../../components/WatchLab';
 
 export function BenchDoc() {
-  return <Bench />;
+  return <Bench docPage />;
 }
 
 export function ConsistencyDoc() {
-  return <Consistency />;
+  return <Consistency docPage />;
 }
 
 export function WatchDoc() {
-  return <WatchLab />;
+  return <WatchLab docPage />;
 }
