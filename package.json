@@ -3,24 +3,29 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "typecheck": "node scripts/typecheck.mjs --noEmit -p .",
-    "build": "node scripts/typecheck.mjs --noEmit -p . && vite build",
-    "preview": "vite preview"
+    "dev": "vp dev",
+    "build": "vp build",
+    "preview": "vp preview",
+    "check": "vp check",
+    "lint": "vp lint",
+    "fmt": "vp fmt",
+    "test": "vp test"
   },
   "dependencies": {
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.3.3",
-    "@tsrs/wasm": "^0.18.0-ts7.1.0-dev.20260929",
+    "@tailwindcss/vite": "4.3.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@vitejs/plugin-react": "^6.1.2",
-    "tailwindcss": "^4.3.3",
-    "tsrs": "^0.18.0-ts7.1.0-dev.20260929",
+    "@vitejs/plugin-react": "6.3.0",
+    "tailwindcss": "4.3.5",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4"
+    "vite-plus": "^1.7.0"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@8.3.8000",
+    "vitest": "5.1.0"
   }
 }
