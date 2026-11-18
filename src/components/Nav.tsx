@@ -12,7 +12,7 @@ const IDS = LINKS.map((l) => l.id);
 const NO_IDS: string[] = [];
 
 export function Nav({ docs = false }: { docs?: boolean }) {
-  const active = useScrollSpy(docs ? NO_IDS : IDS, !docs);
+  const { active, isNative } = useScrollSpy(docs ? NO_IDS : IDS, !docs);
   const [open, setOpen] = useState(false);
   const drawerId = useId();
   const drawerRef = useRef<HTMLDialogElement | null>(null);
@@ -79,26 +79,51 @@ export function Nav({ docs = false }: { docs?: boolean }) {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-seam/70 bg-coal/85 backdrop-blur-md">
+    <header
+      className={
+        docs
+          ? 'fixed inset-x-0 top-0 z-50 border-b border-seam/80 bg-coal/88 backdrop-blur-xl'
+          : 'pointer-events-none fixed inset-x-0 top-0 z-50 px-3 pt-3 md:px-6 md:pt-4'
+      }
+      style={
+        docs
+          ? undefined
+          : {
+              paddingInlineStart: 'max(0.75rem, env(safe-area-inset-left, 0px))',
+              paddingInlineEnd: 'max(0.75rem, env(safe-area-inset-right, 0px))',
+            }
+      }
+    >
+      {docs && (
+        <div
+          ref={progressRef}
+          className="scroll-progress absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-ember via-molten to-tsgo"
+          style={{ transform: 'scaleX(0)' }}
+          aria-hidden="true"
+        />
+      )}
       <div
-        ref={progressRef}
-        className="scroll-progress absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-ember via-molten to-tsgo"
-        style={{ transform: 'scaleX(0)' }}
-        aria-hidden="true"
-      />
-      <div
-        className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-5 md:px-8"
-        style={{
-          paddingInlineStart: 'max(1.25rem, env(safe-area-inset-left, 0px))',
-          paddingInlineEnd: 'max(1.25rem, env(safe-area-inset-right, 0px))',
-        }}
+        className={
+          docs
+            ? 'mx-auto flex h-16 max-w-7xl items-center gap-6 px-5 md:px-8'
+            : 'floating-nav pointer-events-auto relative mx-auto flex h-14 max-w-5xl items-center gap-4 overflow-hidden rounded-2xl px-4 backdrop-blur-xl md:px-5'
+        }
       >
+        {!docs && (
+          <div
+            ref={progressRef}
+            className="scroll-progress absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-ember via-molten to-tsgo"
+            style={{ transform: 'scaleX(0)' }}
+            aria-hidden="true"
+          />
+        )}
+
         <a
           href={docs ? '#/' : '#top'}
-          className="flex items-baseline gap-2.5"
+          className="flex items-baseline gap-2.5 rounded-lg px-1 py-0.5"
           onClick={() => closeDrawer()}
         >
-          <span className="text-xl font-extrabold tracking-tighter">
+          <span className="text-lg font-bold tracking-tight">
             ts<span className="fire-text">rs</span>
           </span>
           <span className="num hidden text-[11px] text-ash sm:inline">7.1.0-beta.tsrs2</span>
@@ -112,7 +137,7 @@ export function Nav({ docs = false }: { docs?: boolean }) {
             <>
               <a
                 href="#/"
-                className="rounded-lg px-3 py-1.5 text-sm font-semibold text-fog transition-colors hover:bg-slab hover:text-bone"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-fog transition-colors hover:bg-slab hover:text-bone"
               >
                 首页
               </a>
@@ -127,37 +152,40 @@ export function Nav({ docs = false }: { docs?: boolean }) {
                 href="https://github.com/oxc-project/tsrs"
                 rel="noreferrer"
                 target="_blank"
-                className="rounded-lg px-3 py-1.5 text-sm font-semibold text-fog transition-colors hover:bg-slab hover:text-bone"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-fog transition-colors hover:bg-slab hover:text-bone"
               >
                 GitHub <span aria-hidden="true">↗</span>
               </a>
             </>
           ) : (
             <>
-              {LINKS.map((l) => (
-                <a
-                  key={l.id}
-                  href={`#${l.id}`}
-                  aria-current={active === l.id ? 'true' : undefined}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
-                    active === l.id
-                      ? 'target-current bg-ember/15 text-flare'
-                      : 'text-fog hover:bg-slab hover:text-bone'
-                  }`}
-                >
-                  {l.label}
-                </a>
-              ))}
+              {LINKS.map((l) => {
+                const isActive = active === l.id;
+                return (
+                  <a
+                    key={l.id}
+                    href={`#${l.id}`}
+                    aria-current={isActive ? 'true' : undefined}
+                    className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                      !isNative && isActive
+                        ? 'target-current'
+                        : 'text-fog hover:bg-slab/80 hover:text-bone'
+                    }`}
+                  >
+                    {l.label}
+                  </a>
+                );
+              })}
               <a
                 href="#/docs"
-                className="rounded-lg border border-seam2 px-3 py-1.5 text-sm font-semibold text-bone transition-colors hover:border-tsgo hover:bg-cobalt/15"
+                className="ml-1 rounded-lg px-3 py-1.5 text-sm font-medium text-fog transition-colors hover:bg-slab/80 hover:text-bone"
               >
                 文档
               </a>
             </>
           )}
           <a
-            className="btn-fire ml-3 !px-4 !py-2 text-sm"
+            className="btn-fire ml-2 !px-3.5 !py-1.5 text-sm"
             href="https://www.npmjs.com/package/tsrs"
             rel="noreferrer"
             target="_blank"
@@ -168,7 +196,7 @@ export function Nav({ docs = false }: { docs?: boolean }) {
 
         <button
           type="button"
-          className="ml-auto flex h-11 w-11 cursor-pointer flex-col items-center justify-center gap-[5px] rounded-lg border border-edge md:hidden"
+          className="ml-auto flex h-10 w-10 cursor-pointer flex-col items-center justify-center gap-[5px] rounded-xl border border-edge/80 bg-coal/60 md:hidden"
           aria-expanded={open}
           aria-controls={drawerId}
           aria-label={open ? '关闭菜单' : '打开菜单'}
@@ -176,15 +204,15 @@ export function Nav({ docs = false }: { docs?: boolean }) {
         >
           <span
             aria-hidden="true"
-            className={`h-[2px] w-5 bg-bone transition-transform ${open ? 'translate-y-[7px] rotate-45' : ''}`}
+            className={`h-[2px] w-4 rounded-full bg-bone transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? 'translate-y-[7px] rotate-45' : ''}`}
           />
           <span
             aria-hidden="true"
-            className={`h-[2px] w-5 bg-bone transition-opacity ${open ? 'opacity-0' : ''}`}
+            className={`h-[2px] w-4 rounded-full bg-bone transition-opacity duration-200 ${open ? 'opacity-0' : ''}`}
           />
           <span
             aria-hidden="true"
-            className={`h-[2px] w-5 bg-bone transition-transform ${open ? '-translate-y-[7px] -rotate-45' : ''}`}
+            className={`h-[2px] w-4 rounded-full bg-bone transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? '-translate-y-[7px] -rotate-45' : ''}`}
           />
         </button>
       </div>
@@ -208,8 +236,8 @@ export function Nav({ docs = false }: { docs?: boolean }) {
           if (e.target === drawerRef.current) closeDrawer();
         }}
       >
-        <div className="mb-4 flex items-center justify-between border-b border-seam pb-3">
-          <span className="text-lg font-extrabold tracking-tighter">
+        <div className="mb-6 flex items-center justify-between border-b border-seam pb-4">
+          <span className="text-lg font-bold tracking-tight">
             ts<span className="fire-text">rs</span>
           </span>
           <button
@@ -227,12 +255,12 @@ export function Nav({ docs = false }: { docs?: boolean }) {
         </div>
 
         <nav aria-label="页面（移动端）">
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-1.5">
             {docs && (
               <li>
                 <a
                   href="#/"
-                  className="flex min-h-11 items-center rounded-lg px-3 py-2.5 text-[15px] font-semibold text-fog hover:bg-slab hover:text-bone"
+                  className="flex min-h-11 items-center rounded-lg px-3 py-2.5 text-base font-medium text-fog hover:bg-slab hover:text-bone"
                   onClick={closeDrawer}
                 >
                   首页
@@ -245,7 +273,7 @@ export function Nav({ docs = false }: { docs?: boolean }) {
                   <a
                     href={`#${l.id}`}
                     aria-current={active === l.id ? 'true' : undefined}
-                    className={`flex min-h-11 items-center rounded-lg px-3 py-2.5 text-[15px] font-semibold ${
+                    className={`flex min-h-11 items-center rounded-lg px-3 py-2.5 text-base font-medium ${
                       active === l.id
                         ? 'bg-ember/15 text-flare'
                         : 'text-fog hover:bg-slab hover:text-bone'
@@ -260,7 +288,7 @@ export function Nav({ docs = false }: { docs?: boolean }) {
               <a
                 href="#/docs"
                 aria-current={docs ? 'page' : undefined}
-                className={`flex min-h-11 items-center rounded-lg px-3 py-2.5 text-[15px] font-semibold ${
+                className={`flex min-h-11 items-center rounded-lg px-3 py-2.5 text-base font-medium ${
                   docs ? 'bg-ember/15 text-flare' : 'text-fog hover:bg-slab hover:text-bone'
                 }`}
                 onClick={closeDrawer}
@@ -270,7 +298,7 @@ export function Nav({ docs = false }: { docs?: boolean }) {
             </li>
           </ul>
           <a
-            className="btn-fire mt-4 flex w-full justify-center text-sm"
+            className="btn-fire mt-6 flex w-full justify-center text-base"
             href="https://www.npmjs.com/package/tsrs"
             rel="noreferrer"
             target="_blank"

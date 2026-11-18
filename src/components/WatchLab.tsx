@@ -62,9 +62,6 @@ export function WatchLab({ docPage = false }: { docPage?: boolean }) {
       tabIndex={-1}
       className={`${docPage ? '' : 'deferred-section '}relative py-16 md:py-24`}
     >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="aurora aurora-ember top-1/3 -left-48 h-[440px] w-[440px]" />
-      </div>
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHead
           tag="--watch · vscode · src/ 9.4k files"
@@ -76,16 +73,15 @@ export function WatchLab({ docPage = false }: { docPage?: boolean }) {
           }
           lead={
             <>
-              vscode 的 9.4k 个源文件，一次注释编辑动不到别人。下面是一次 watch
-              会话的模拟编辑：选一个场景，按下按钮，看 tsrs 与 tsgo 各自多久报完这一轮。
-              macOS（FSEvents）与 Linux（inotify）都支持，Windows 的 --watch 还没落地。
+              vscode 的 9.4k 个源文件，一次注释编辑动不到别人。选一个场景触发模拟编辑，对比 tsrs 与
+              tsgo 的响应耗时。macOS（FSEvents）与 Linux（inotify）已支持，Windows 尚未移植。
             </>
           }
         />
 
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <Reveal className="panel panel-glow overflow-hidden">
-            <div className="flex flex-wrap items-center gap-2 border-b border-seam px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2.5 border-b border-seam bg-coal/50 px-4 py-3">
               <span className="num text-xs text-ash">场景</span>
               <div className="seg flex-wrap" role="group" aria-label="watch 场景">
                 {WATCH.map((w, i) => (
@@ -102,17 +98,29 @@ export function WatchLab({ docPage = false }: { docPage?: boolean }) {
             </div>
 
             <div className="px-4 py-5 md:px-6">
-              <div className="mb-5 rounded-lg border border-seam bg-coal/80 p-4">
-                <p className="num mb-2 text-[11px] text-ash">{snippet.file} · 保存即触发</p>
-                <p className="num overflow-x-auto text-sm">
-                  <span className="mr-3 select-none text-seam2" aria-hidden="true">
+              <div
+                className={`mb-5 overflow-hidden rounded-lg border transition-colors ${
+                  row.id === 'error' && edited
+                    ? 'border-danger/45 bg-danger/5'
+                    : 'border-seam bg-coal/90'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 border-b border-seam/70 bg-soot/60 px-3.5 py-2">
+                  <span className="num truncate text-[11px] text-ash">{snippet.file}</span>
+                  <span className="num shrink-0 text-[11px] text-ash">保存即触发</span>
+                </div>
+                <p className="num flex items-center overflow-x-auto px-3.5 py-3 text-[13px] whitespace-nowrap">
+                  <span
+                    className="mr-3 border-r border-seam pr-3 select-none text-seam2"
+                    aria-hidden="true"
+                  >
                     42
                   </span>
                   <span className={edited ? 'text-bone' : 'text-ash'}>
                     {edited ? snippet.after : snippet.before}
                   </span>
                   {row.id === 'error' && edited && (
-                    <span className="num ml-3 rounded bg-danger/15 px-1.5 py-0.5 text-[11px] text-danger">
+                    <span className="num ml-3 rounded bg-danger/15 px-1.5 py-0.5 text-[11px] font-semibold text-danger">
                       TS2322
                     </span>
                   )}
@@ -142,7 +150,7 @@ export function WatchLab({ docPage = false }: { docPage?: boolean }) {
                 ).map((lane) => (
                   <div key={lane.name}>
                     <div className="num mb-1.5 flex items-baseline justify-between text-sm">
-                      <span className={`font-bold ${lane.color}`}>{lane.name}</span>
+                      <span className={`font-semibold ${lane.color}`}>{lane.name}</span>
                       <span
                         className={
                           lane.done ? (lane.cls === 'rs' ? 'text-acid' : 'text-fog') : 'text-ash'
@@ -159,7 +167,7 @@ export function WatchLab({ docPage = false }: { docPage?: boolean }) {
                         )}
                       </span>
                     </div>
-                    <div className="lane h-4">
+                    <div className="lane h-3.5">
                       <div
                         className={`lane-fill ${lane.cls} ${!lane.done && race.running ? 'live' : ''}`}
                         style={{ width: `${lane.pct}%` }}
@@ -183,7 +191,7 @@ export function WatchLab({ docPage = false }: { docPage?: boolean }) {
                   )}
                   <button
                     type="button"
-                    className="btn-fire !px-5 !py-2.5 text-sm"
+                    className="btn-fire !px-4 !py-2 text-sm"
                     onClick={() => trigger()}
                   >
                     <span aria-hidden="true">{race.running ? '⟳ ' : '✎ '}</span>
@@ -195,26 +203,26 @@ export function WatchLab({ docPage = false }: { docPage?: boolean }) {
           </Reveal>
 
           <div className="space-y-4">
-            <Reveal delay={100} className="panel p-5">
+            <Reveal delay={80} className="panel p-5">
               <p className="num mb-3 text-[11px] tracking-wider text-ash uppercase">
                 同一次会话的常驻内存（RSS）
               </p>
               <div className="num grid grid-cols-1 gap-2 text-[13px] sm:grid-cols-2">
-                <span className="rounded-md border border-tsgo/25 bg-tsgo/8 px-2.5 py-1.5 text-tsgo">
+                <span className="rounded-lg border border-tsgo/25 bg-tsgo/8 px-3 py-2 text-tsgo">
                   tsgo {WATCH_EXTRA.rss.tsgo}
                 </span>
-                <span className="rounded-md border border-ember/25 bg-ember/8 px-2.5 py-1.5 text-flare">
+                <span className="rounded-lg border border-ember/25 bg-ember/8 px-3 py-2 text-flare">
                   tsrs {WATCH_EXTRA.rss.tsrs}
                 </span>
               </div>
-              <p className="lead-pretty mt-2 text-xs leading-relaxed text-ash">
+              <p className="lead-pretty mt-3 text-xs leading-relaxed text-ash">
                 -b --watch 增量构建：tsrs {WATCH_EXTRA.rss.buildTsrs} · tsgo{' '}
                 {WATCH_EXTRA.rss.buildTsgo}。分支往返 8 轮（4,037 个文件改写）后，泄漏修复把 RSS
                 增长从每轮 +1.85 GB 压到约 0.5 GB。
               </p>
             </Reveal>
 
-            <Reveal delay={170} className="panel p-5">
+            <Reveal delay={140} className="panel p-5">
               <p className="num mb-3 text-[11px] tracking-wider text-ash uppercase">
                 全部读数 · --watch 与 -b --watch
               </p>
@@ -224,25 +232,25 @@ export function WatchLab({ docPage = false }: { docPage?: boolean }) {
                 aria-labelledby={tableCaptionId}
                 className="doc-scroll overflow-x-auto"
               >
-                <table className="num w-full min-w-[420px] text-[12px]">
+                <table className="num w-full text-[11.5px]">
                   <caption id={tableCaptionId} className="visually-hidden">
                     --watch 与 -b --watch 五类编辑场景延迟对照表
                   </caption>
                   <thead>
-                    <tr className="text-left text-[11px] text-ash">
-                      <th scope="col" className="sticky-col pb-2 pr-2 font-normal">
+                    <tr className="text-left text-[10.5px] text-ash">
+                      <th scope="col" className="sticky-col py-2 pr-2 pl-3 font-normal">
                         场景
                       </th>
-                      <th scope="col" className="pb-2 text-right font-normal">
+                      <th scope="col" className="px-2 py-2 text-right font-normal">
                         tsrs
                       </th>
-                      <th scope="col" className="pb-2 text-right font-normal">
+                      <th scope="col" className="px-2 py-2 text-right font-normal">
                         tsgo
                       </th>
-                      <th scope="col" className="pb-2 text-right font-normal">
+                      <th scope="col" className="px-2 py-2 text-right font-normal">
                         -b tsrs
                       </th>
-                      <th scope="col" className="pb-2 text-right font-normal">
+                      <th scope="col" className="py-2 pr-3 pl-2 text-right font-normal">
                         -b tsgo
                       </th>
                     </tr>
@@ -252,20 +260,20 @@ export function WatchLab({ docPage = false }: { docPage?: boolean }) {
                       <tr key={w.id}>
                         <th
                           scope="row"
-                          className="sticky-col border-t border-seam/50 py-2 pr-2 text-left font-normal text-fog"
+                          className="sticky-col border-t border-seam/50 py-2 pr-2 pl-3 text-left font-normal text-fog"
                         >
                           {w.label}
                         </th>
-                        <td className="border-t border-seam/50 py-2 text-right text-flare">
+                        <td className="border-t border-seam/50 px-2 py-2 text-right whitespace-nowrap text-flare">
                           {w.tsrsLabel.split(' · ')[0]}
                         </td>
-                        <td className="border-t border-seam/50 py-2 text-right text-tsgo">
+                        <td className="border-t border-seam/50 px-2 py-2 text-right whitespace-nowrap text-tsgo">
                           {w.tsgoLabel.split(' · ')[0]}
                         </td>
-                        <td className="border-t border-seam/50 py-2 text-right text-flare/80">
+                        <td className="border-t border-seam/50 px-2 py-2 text-right whitespace-nowrap text-flare/80">
                           {w.buildTsrs}
                         </td>
-                        <td className="border-t border-seam/50 py-2 text-right text-tsgo/80">
+                        <td className="border-t border-seam/50 py-2 pr-3 pl-2 text-right whitespace-nowrap text-tsgo/80">
                           {w.buildTsgo}
                         </td>
                       </tr>
@@ -278,7 +286,7 @@ export function WatchLab({ docPage = false }: { docPage?: boolean }) {
               </p>
             </Reveal>
 
-            <Reveal delay={240} className="panel p-5">
+            <Reveal delay={200} className="panel p-5">
               <p className="num mb-3 text-[11px] tracking-wider text-ash uppercase">会话细节</p>
               <ul className="space-y-2 text-[13px] leading-relaxed text-ash">
                 <li>

@@ -18,53 +18,59 @@ export function Story() {
                 </>
               }
             />
-            <Reveal delay={100}>
-              <p className="lead-pretty max-w-prose text-[15px] leading-relaxed text-fog">
+            <Reveal delay={80}>
+              <p className="lead-pretty max-w-[60ch] text-base leading-relaxed text-fog">
                 移植不是重写。同一份语义，换一副模子重新排一遍，印出来还得是同一页字。tsrs 把
                 TypeScript 的实现逐条搬进
                 Rust，再用同一批诊断去校对：哪一行输出的字符不一样，就是哪里还没搬完。
               </p>
-              <p className="lead-pretty mt-5 max-w-prose text-sm leading-relaxed text-ash">
+              <p className="lead-pretty mt-5 max-w-[60ch] text-sm leading-relaxed text-ash">
                 整体移植由 Max Schwenk 完成；@walkerdb 与 @JiangWeixian 之后做了改进，其中
                 @JiangWeixian 转让了 tsrs 这个 npm 包名。TypeScript 团队提供了全程支持。
               </p>
             </Reveal>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1.2fr_1fr] sm:items-end">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-[1.2fr_1fr] sm:items-end">
             <Reveal
               as="figure"
-              className="story-fig relative overflow-hidden rounded-xl border border-seam"
+              className="story-fig overflow-hidden rounded-2xl border border-seam bg-soot"
             >
-              <img
-                className="story-img block aspect-[4/3] w-full object-cover"
-                src={typeCase}
-                width={1920}
-                height={1276}
-                alt="排字工的活字盘：木格子里按字母分装着金属活字，一把字盘上夹着已排好的一行字"
-                loading="lazy"
-                decoding="async"
-              />
-              <figcaption className="absolute inset-x-2 bottom-2 rounded-md bg-coal/85 px-3 py-2 text-[11px] leading-relaxed text-fog backdrop-blur-sm">
-                字盘：同一批字，按格归位。Willi Heidelbach 摄，CC BY 2.5
+              <div className="overflow-hidden">
+                <img
+                  className="story-img block aspect-[4/3] w-full object-cover"
+                  src={typeCase}
+                  width={1920}
+                  height={1276}
+                  alt="排字工的活字盘：木格子里按字母分装着金属活字，一把字盘上夹着已排好的一行字"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <figcaption className="border-t border-seam px-4 py-3 text-xs leading-relaxed text-ash">
+                <span className="font-medium text-fog">字盘</span>：同一批字，按格归位 · Willi
+                Heidelbach 摄，CC BY 2.5
               </figcaption>
             </Reveal>
             <Reveal
               as="figure"
-              delay={120}
-              className="story-fig relative overflow-hidden rounded-xl border border-seam"
+              delay={100}
+              className="story-fig overflow-hidden rounded-2xl border border-seam bg-soot"
             >
-              <img
-                className="story-img block aspect-[4/3.55] w-full object-cover"
-                src={composingStick}
-                width={1920}
-                height={1280}
-                alt="一把排字手盘，里面反着排了一行泰文金属活字"
-                loading="lazy"
-                decoding="async"
-              />
-              <figcaption className="absolute inset-x-2 bottom-2 rounded-md bg-coal/85 px-3 py-2 text-[11px] leading-relaxed text-fog backdrop-blur-sm">
-                排字手盘：字要反着排，印出来才是正的。Paul_012 摄，CC BY-SA 4.0
+              <div className="overflow-hidden">
+                <img
+                  className="story-img block aspect-[4/3.55] w-full object-cover"
+                  src={composingStick}
+                  width={1920}
+                  height={1280}
+                  alt="一把排字手盘，里面反着排了一行泰文金属活字"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <figcaption className="border-t border-seam px-4 py-3 text-xs leading-relaxed text-ash">
+                <span className="font-medium text-fog">排字手盘</span>：字要反着排，印出来才是正的 ·
+                Paul_012 摄，CC BY-SA 4.0
               </figcaption>
             </Reveal>
           </div>

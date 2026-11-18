@@ -41,24 +41,24 @@ function DetailBars({ project, metric }: { project: Project; metric: Metric }) {
 function Detail({ project, docPage }: { project: Project; docPage: boolean }) {
   const Heading = docPage ? 'h2' : 'h3';
   return (
-    <aside className="panel panel-glow sticky top-24 p-5" aria-live="polite">
+    <aside className="panel-raised panel-glow sticky top-24 p-5" aria-live="polite">
       <div className="mb-4 flex items-center justify-between gap-3">
         <Heading className="num text-lg font-bold text-bone">{project.name}</Heading>
         <span className="chip">默认设置</span>
       </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3 xl:grid-cols-1">
-        <div className="rounded-lg border border-ember/30 bg-ember/8 p-3">
+      <div className="mb-4 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-seam bg-seam sm:grid-cols-3 xl:grid-cols-1">
+        <div className="bg-coal/80 p-3.5">
           <p className="num text-[11px] text-ash">--fast 时间优势</p>
-          <p className="num mt-1 text-3xl font-bold text-molten">{fmtRatio(project.rtf)}</p>
+          <p className="num mt-1 text-2xl font-bold text-molten">{fmtRatio(project.rtf)}</p>
         </div>
-        <div className="rounded-lg border border-seam2 bg-soot p-3">
+        <div className="bg-coal/80 p-3.5">
           <p className="num text-[11px] text-ash">默认模式时间优势</p>
-          <p className="num mt-1 text-3xl font-bold text-flare">{fmtRatio(project.rt)}</p>
+          <p className="num mt-1 text-2xl font-bold text-flare">{fmtRatio(project.rt)}</p>
         </div>
-        <div className="rounded-lg border border-tsgo/30 bg-tsgo/8 p-3">
+        <div className="bg-coal/80 p-3.5">
           <p className="num text-[11px] text-ash">--fast 内存优势</p>
-          <p className="num mt-1 text-3xl font-bold text-tsgo">{fmtRatio(project.rmf)}</p>
+          <p className="num mt-1 text-2xl font-bold text-tsgo">{fmtRatio(project.rmf)}</p>
         </div>
       </div>
 
@@ -158,9 +158,6 @@ export function Bench({ docPage = false }: { docPage?: boolean }) {
       tabIndex={-1}
       className={`${docPage ? '' : 'deferred-section '}relative py-16 md:py-24`}
     >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="aurora aurora-acid top-40 -left-48 h-[480px] w-[480px]" />
-      </div>
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHead
           tag="Benchmarks · 19 projects"

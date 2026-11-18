@@ -1,6 +1,7 @@
 import { Nav } from './components/Nav';
 import { Hero } from './components/Hero';
 import { Stats } from './components/Stats';
+import { TaglineReveal } from './components/TaglineReveal';
 import { Bench } from './components/Bench';
 import { Consistency } from './components/Consistency';
 import { WatchLab } from './components/WatchLab';
@@ -29,6 +30,7 @@ export default function App() {
       <main id="main-content" tabIndex={-1}>
         <Hero />
         <Stats />
+        <TaglineReveal />
         <Bench />
         <Consistency />
         <WatchLab />

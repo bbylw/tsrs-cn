@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { docHref } from '../lib/router';
-import { Cmd, CopyButton, Reveal, SectionHead } from './ui';
+import { Cmd, Reveal, SectionHead } from './ui';
 
 const PMS = ['pnpm', 'npm', 'bun', 'yarn'] as const;
 type Pm = (typeof PMS)[number];
@@ -41,6 +41,7 @@ const SAMPLE = [
   '  return `hi ${u.nmae}`;',
   '}',
 ];
+const ERROR_LINES = new Set([0, 3, 6]);
 
 const DIAGNOSTICS = [
   {
@@ -70,101 +71,125 @@ function SplitDemo() {
     timers.current.forEach((t) => window.clearTimeout(t));
     timers.current = [];
     setPhase('running');
-    timers.current.push(window.setTimeout(() => setPhase('done'), 1500));
+    timers.current.push(window.setTimeout(() => setPhase('done'), 1400));
   };
 
   return (
-    <Reveal className="panel panel-glow mt-12 overflow-hidden">
+    <Reveal className="panel panel-glow mt-10 overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-seam bg-coal/50 px-5 py-3">
+        <div className="flex items-center gap-2.5">
+          <span className="term-dot bg-danger/75" aria-hidden="true" />
+          <span className="term-dot bg-warn/75" aria-hidden="true" />
+          <span className="term-dot bg-acid/75" aria-hidden="true" />
+          <span className="num ml-1.5 text-xs text-fog">diagnostics-diff · sample.ts</span>
+        </div>
+        <span className="chip">strict · noEmit</span>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2">
-        <div className="border-b border-seam bg-coal/60 p-5 md:border-r md:border-b-0 md:p-7">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-bold text-bone">输入一半</h3>
-            <span className="chip">sample.ts · strict · noEmit</span>
+        <div className="border-b border-seam bg-coal/70 p-5 md:border-r md:border-b-0 md:p-6">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold text-ash">输入代码</h3>
+            <span className="num text-[11px] text-ash">3 处类型错误</span>
           </div>
           <pre
             tabIndex={0}
             role="region"
             aria-label="sample.ts 示例代码"
-            className="num overflow-x-auto text-[13px] leading-7 text-fog"
+            className="num overflow-x-auto rounded-lg border border-seam/80 bg-coal p-3 text-[13px] leading-7 text-fog"
           >
             <code>
-              {SAMPLE.map((line, i) => (
-                <span key={i} className="block">
-                  <span className="inline-block w-8 select-none text-seam2" aria-hidden="true">
-                    {i + 1}
+              {SAMPLE.map((line, i) => {
+                const isErr = ERROR_LINES.has(i);
+                return (
+                  <span
+                    key={i}
+                    className={`block rounded px-1.5 ${
+                      isErr ? 'bg-danger/10 text-bone' : undefined
+                    }`}
+                  >
+                    <span
+                      className="mr-3 inline-block w-6 border-r border-seam/80 pr-2 text-right select-none text-seam2"
+                      aria-hidden="true"
+                    >
+                      {i + 1}
+                    </span>
+                    <span>{line || ' '}</span>
                   </span>
-                  <span className={i === 0 || i === 3 || i === 6 ? 'text-bone' : undefined}>
-                    {line || ' '}
-                  </span>
-                </span>
-              ))}
+                );
+              })}
             </code>
           </pre>
         </div>
 
-        <div className="p-5 md:p-7">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-bold text-bone">输出一半</h3>
-            <button
-              type="button"
-              className="btn-fire !px-4 !py-2 text-xs"
-              onClick={run}
-              disabled={phase === 'running'}
-            >
-              {phase === 'running' ? (
-                '检查中…'
-              ) : phase === 'done' ? (
-                <>
-                  <span aria-hidden="true">⟳ </span>再跑一遍
-                </>
-              ) : (
-                <>
-                  <span aria-hidden="true">▶ </span>运行 tsrs
-                </>
-              )}
-            </button>
-          </div>
-
-          {phase === 'idle' && (
-            <p className="num py-8 text-center text-sm text-ash">
-              按下「运行 tsrs」，看它报出和 TypeScript 逐字相同的三行诊断。
-            </p>
-          )}
-
-          {phase !== 'idle' && (
-            <div className="space-y-3" aria-live="polite">
-              {DIAGNOSTICS.map((d, i) => (
-                <div
-                  key={d.where}
-                  className="diag-in flex items-start gap-3 rounded-lg border border-seam bg-coal/60 p-3"
-                  style={{ '--dd': `${300 + i * 320}ms` } as CSSProperties}
-                >
-                  <span className="num shrink-0 rounded bg-danger/15 px-1.5 py-0.5 text-[11px] font-bold text-danger">
-                    {d.code}
-                  </span>
-                  <span className="num min-w-0 text-[12.5px] leading-relaxed">
-                    <span className="text-ash">{d.where}</span>
-                    <br />
-                    <span className="text-fog">{d.text}</span>
-                  </span>
-                </div>
-              ))}
-
-              {phase === 'done' && (
-                <div
-                  className="diag-in flex items-center gap-3 rounded-lg border border-acid/40 bg-acid/10 p-3.5"
-                  style={{ '--dd': '150ms' } as CSSProperties}
-                >
-                  <span className="num rounded bg-acid/20 px-2 py-0.5 text-[11px] font-bold text-acid">
-                    diff
-                  </span>
-                  <p className="text-sm font-semibold text-acid">
-                    空的。三行输出与 TypeScript 7.1 beta 逐项相同。
-                  </p>
-                </div>
-              )}
+        <div className="flex flex-col justify-between p-5 md:p-6">
+          <div>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-ash">诊断对比输出</h3>
+              <button
+                type="button"
+                className="btn-fire !px-4 !py-2 text-xs"
+                onClick={run}
+                disabled={phase === 'running'}
+              >
+                {phase === 'running' ? (
+                  '检查中…'
+                ) : phase === 'done' ? (
+                  <>
+                    <span aria-hidden="true">⟳ </span>再跑一遍
+                  </>
+                ) : (
+                  <>
+                    <span aria-hidden="true">▶ </span>运行 tsrs
+                  </>
+                )}
+              </button>
             </div>
-          )}
+
+            {phase === 'idle' && (
+              <div className="rounded-lg border border-dashed border-seam2 bg-coal/50 px-5 py-10 text-center">
+                <p className="num text-sm font-medium text-fog">准备就绪</p>
+                <p className="mt-1.5 text-xs text-ash">
+                  点击右上角「运行 tsrs」，对比它与 TypeScript 7.1 beta 的逐行诊断结果。
+                </p>
+              </div>
+            )}
+
+            {phase !== 'idle' && (
+              <div className="space-y-2.5" aria-live="polite">
+                {DIAGNOSTICS.map((d, i) => (
+                  <div
+                    key={d.where}
+                    className="diag-in flex items-start gap-3 rounded-lg border border-seam bg-coal/80 p-3"
+                    style={{ '--dd': `${240 + i * 280}ms` } as CSSProperties}
+                  >
+                    <span className="num shrink-0 rounded bg-danger/15 px-1.5 py-0.5 text-[11px] font-bold text-danger">
+                      {d.code}
+                    </span>
+                    <span className="num min-w-0 text-[12.5px] leading-relaxed">
+                      <span className="text-ash">{d.where}</span>
+                      <br />
+                      <span className="text-fog">{d.text}</span>
+                    </span>
+                  </div>
+                ))}
+
+                {phase === 'done' && (
+                  <div
+                    className="diag-in flex items-center gap-3 rounded-lg border border-acid/40 bg-acid/10 p-3"
+                    style={{ '--dd': '120ms' } as CSSProperties}
+                  >
+                    <span className="num rounded bg-acid/20 px-2 py-0.5 text-[11px] font-bold text-acid">
+                      diff
+                    </span>
+                    <p className="text-sm font-semibold text-acid">
+                      空输出 · 与 TypeScript 7.1 beta 逐项相同
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           <p className="lead-pretty mt-4 text-xs leading-relaxed text-ash">
             同一份 sample.ts、同一份 tsconfig。最新基准的 19 个项目上，三份编译器的诊断全部一致。
@@ -180,9 +205,6 @@ export function Quickstart() {
 
   return (
     <section id="start" tabIndex={-1} className="deferred-section relative py-16 md:py-24">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="aurora aurora-blue bottom-0 -left-48 h-[420px] w-[420px]" />
-      </div>
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHead
           tag="Quickstart"
@@ -206,30 +228,31 @@ export function Quickstart() {
         </Reveal>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <Reveal className="panel flex flex-col p-5">
-            <p className="num mb-1 text-4xl font-bold text-seam2" aria-hidden="true">
-              01
-            </p>
-            <h3 className="mb-3 text-lg font-bold text-bone">先装上它。</h3>
-            <Cmd text={addCmd(pm)} />
+          <Reveal className="panel flex flex-col p-5 md:p-6">
+            <div className="mb-4 flex items-center justify-between border-b border-seam pb-3">
+              <span className="num text-xs font-semibold text-flare">STEP 01</span>
+              <span className="num text-xs text-ash">安装依赖</span>
+            </div>
+            <h3 className="mb-3 text-lg font-semibold text-bone">先装上它</h3>
+            <Cmd compact text={addCmd(pm)} />
             <p className="lead-pretty mt-4 text-sm leading-relaxed text-ash">
               <code className="num text-molten">@next</code> 指向 7.1.0-beta.tsrs2。包本身只是入口，
               二进制按平台分发：macOS arm64/x64、Linux x64/arm64（gnu 与 musl）、Windows
-              x64/arm64，共八个原生包。没有预编译二进制的平台，用{' '}
-              <b className="text-fog">@tsrs/wasm</b> 顶上去。
+              x64/arm64，共八个原生包。无原生包平台用 <b className="text-fog">@tsrs/wasm</b> 兜底。
             </p>
           </Reveal>
 
-          <Reveal delay={90} className="panel flex flex-col p-5">
-            <p className="num mb-1 text-4xl font-bold text-seam2" aria-hidden="true">
-              02
-            </p>
-            <h3 className="mb-3 text-lg font-bold text-bone">再把 tsc 换掉。</h3>
-            <Cmd text={runCmd(pm)} />
-            <p className="mt-4 mb-2 text-sm leading-relaxed text-ash">
+          <Reveal delay={70} className="panel flex flex-col p-5 md:p-6">
+            <div className="mb-4 flex items-center justify-between border-b border-seam pb-3">
+              <span className="num text-xs font-semibold text-flare">STEP 02</span>
+              <span className="num text-xs text-ash">替换命令</span>
+            </div>
+            <h3 className="mb-3 text-lg font-semibold text-bone">再把 tsc 换掉</h3>
+            <Cmd compact text={runCmd(pm)} />
+            <p className="mt-4 mb-2.5 text-sm leading-relaxed text-ash">
               参数沿用 tsc 的那一套，另有 tsrs 自己的开关：
             </p>
-            <ul className="grid grid-cols-1 gap-1.5 text-[12.5px] sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-2 text-[12px] sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               {FLAGS.map((f) => (
                 <li key={f.code} className="flex flex-col">
                   <code className={`num ${f.ok ? 'text-molten' : 'text-ash line-through'}`}>
@@ -241,20 +264,13 @@ export function Quickstart() {
             </ul>
           </Reveal>
 
-          <Reveal delay={180} className="panel flex flex-col p-5">
-            <p className="num mb-1 text-4xl font-bold text-seam2" aria-hidden="true">
-              03
-            </p>
-            <h3 className="mb-3 text-lg font-bold text-bone">然后比对输出。</h3>
-            <div className="flex items-center gap-3 rounded-lg border border-seam bg-coal/80 px-4 py-3">
-              <span className="num select-none text-ember" aria-hidden="true">
-                $
-              </span>
-              <code className="num min-w-0 flex-1 overflow-x-auto text-[12px] whitespace-nowrap text-bone">
-                diff &lt;(tsc --noEmit) &lt;(tsrs --noEmit)
-              </code>
-              <CopyButton text="diff <(tsc --noEmit) <(tsrs --noEmit)" targetLabel="diff 命令" />
+          <Reveal delay={140} className="panel flex flex-col p-5 md:p-6">
+            <div className="mb-4 flex items-center justify-between border-b border-seam pb-3">
+              <span className="num text-xs font-semibold text-flare">STEP 03</span>
+              <span className="num text-xs text-ash">一致性核对</span>
             </div>
+            <h3 className="mb-3 text-lg font-semibold text-bone">然后比对输出</h3>
+            <Cmd compact wrap text="diff <(tsc --noEmit) <(tsrs --noEmit)" />
             <p className="lead-pretty mt-4 text-sm leading-relaxed text-ash">
               最新一轮基准里，<b className="text-fog">19 个项目的 diff 全是空的</b>
               ——包括 webpack 的 840 条、vscode 的 371 条真实错误，文件、位置、错误码逐项相同。

@@ -92,12 +92,12 @@ export function CopyButton({
       <button
         type="button"
         aria-label={`${label}：${targetLabel ?? text}`}
-        className={`num shrink-0 cursor-pointer rounded-md border px-2.5 py-1 text-xs transition-colors ${
+        className={`num shrink-0 cursor-pointer rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
           status === 'done'
             ? 'border-acid/60 bg-acid/10 text-acid'
             : status === 'failed'
               ? 'border-danger/60 bg-danger/10 text-danger'
-              : 'border-edge text-ash hover:border-flare hover:text-flare'
+              : 'border-seam2 bg-slab/60 text-fog hover:border-flare hover:text-flare'
         }`}
         onClick={handleCopy}
       >
@@ -120,13 +120,31 @@ export function CopyButton({
   );
 }
 
-export function Cmd({ text }: { text: string }) {
+export function Cmd({
+  text,
+  compact = false,
+  wrap = false,
+}: {
+  text: string;
+  compact?: boolean;
+  wrap?: boolean;
+}) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-seam bg-coal/80 px-4 py-3">
+    <div
+      className={`flex items-center gap-2.5 rounded-xl border border-seam bg-coal/90 ${
+        compact ? 'px-3 py-2.5' : 'px-4 py-3'
+      }`}
+    >
       <span className="num select-none text-ember" aria-hidden="true">
         $
       </span>
-      <code className="num min-w-0 flex-1 overflow-x-auto text-sm whitespace-nowrap text-bone">
+      <code
+        className={`num min-w-0 flex-1 text-bone ${
+          wrap
+            ? 'whitespace-normal break-words leading-relaxed'
+            : 'overflow-x-auto whitespace-nowrap'
+        } ${compact ? 'text-[12px]' : 'text-[13px]'}`}
+      >
         {text}
       </code>
       <CopyButton text={text} />
@@ -149,11 +167,11 @@ export function SectionHead({
   return (
     <Reveal className="mb-10 md:mb-14">
       <p className="tag mb-4">{tag}</p>
-      <Heading className="h2 max-w-3xl" tabIndex={headingLevel === 'h1' ? -1 : undefined}>
+      <Heading className="h2 max-w-[680px]" tabIndex={headingLevel === 'h1' ? -1 : undefined}>
         {title}
       </Heading>
       {lead && (
-        <p className="lead-pretty mt-5 max-w-2xl text-[15px] leading-relaxed text-ash md:text-base">
+        <p className="lead-pretty mt-4 max-w-[65ch] text-sm leading-relaxed text-ash md:text-base">
           {lead}
         </p>
       )}

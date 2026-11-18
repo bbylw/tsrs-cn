@@ -192,10 +192,6 @@ export function DocsApp({ route }: { route: string }) {
         <div className="grain" />
       </div>
       <Nav docs />
-      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
-        <div className="aurora aurora-blue -top-32 -right-40 h-[460px] w-[460px] opacity-60" />
-        <div className="aurora aurora-ember -bottom-48 -left-40 h-[420px] w-[420px] opacity-50" />
-      </div>
 
       {/* 移动端目录触发条 */}
       <div className="sticky top-16 z-40 mt-16 border-b border-seam bg-coal/90 backdrop-blur-md lg:hidden">

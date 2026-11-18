@@ -200,6 +200,7 @@ export function useRace(lanes: number[], wallSeconds = 4) {
  */
 export function useScrollSpy(ids: string[], enabled = true) {
   const [active, setActive] = useState('');
+  const isNative = typeof CSS !== 'undefined' && CSS.supports('scroll-target-group: auto');
   const idsKey = ids.join('|');
 
   useEffect(() => {
@@ -208,9 +209,7 @@ export function useScrollSpy(ids: string[], enabled = true) {
       return;
     }
 
-    const supportsNative = typeof CSS !== 'undefined' && CSS.supports('scroll-target-group: auto');
-
-    if (supportsNative) {
+    if (isNative) {
       const ac = new AbortController();
       const syncFromNative = () => {
         const currentLink = document.querySelector<HTMLAnchorElement>('.nav-spy a:target-current');
@@ -252,7 +251,7 @@ export function useScrollSpy(ids: string[], enabled = true) {
     }
 
     return () => io.disconnect();
-  }, [idsKey, enabled]);
+  }, [idsKey, enabled, isNative]);
 
-  return active;
+  return { active, isNative };
 }
