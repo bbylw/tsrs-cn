@@ -1,130 +1,92 @@
 import { useMemo, useState } from 'react';
-import { ERROR_DIFFS, PROJECTS, SETTINGS, fmtMem, fmtRatio, fmtTime } from '../data/bench';
-import type { Project, SettingId } from '../data/bench';
+import { BENCH_META, PROJECTS, fmtMem, fmtRatio, fmtTime } from '../data/bench';
+import type { Project } from '../data/bench';
 import { Legend, Reveal, SectionHead } from './ui';
 
 type Metric = 'time' | 'mem';
 type Scale = 'linear' | 'log';
-type Sort = 'ratio' | 'tsgo' | 'tsrs' | 'name';
+type Sort = 'fast' | 'rs' | 'ts' | 'name';
 type View = 'race' | 'table';
 
-const THREADS = ['t4', 't8', 't16'] as const;
+const LANES = [
+  { key: 'ts', name: 'TypeScript', cls: 'go', color: 'text-tsgo' },
+  { key: 'rs', name: 'tsrs', cls: 'rs', color: 'text-flare' },
+  { key: 'fast', name: '--fast', cls: 'fast', color: 'text-molten' },
+] as const;
 
-function MemoryCurve({ project, setting }: { project: Project; setting: SettingId }) {
-  const W = 280;
-  const H = 84;
-  const LABEL = 24;
-  const max = Math.max(...THREADS.map((s) => project.runs[s].tsgo.m)) * 1.14;
-  const px = (i: number) => 12 + (i * (W - 28)) / 2;
-  const py = (v: number) => H - 4 - (v / max) * (H - 14);
-  const line = (pick: (s: (typeof THREADS)[number]) => number) =>
-    THREADS.map(
-      (s, i) => `${i === 0 ? 'M' : 'L'}${px(i).toFixed(1)} ${py(pick(s)).toFixed(1)}`,
-    ).join(' ');
-  const markIndex = setting === 'default' ? -1 : THREADS.indexOf(setting);
-
+function DetailBars({ project, metric }: { project: Project; metric: Metric }) {
+  const vals = LANES.map((l) => project[l.key][metric === 'time' ? 't' : 'm']);
+  const max = Math.max(...vals);
+  const fmt = metric === 'time' ? fmtTime : fmtMem;
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H + LABEL}`}
-      className="w-full"
-      role="img"
-      aria-label={`${project.name} 的峰值内存随线程数变化：tsgo 上升，tsrs 基本持平`}
-    >
-      {[0.25, 0.5, 0.75].map((f) => (
-        <line
-          key={f}
-          x1={8}
-          x2={W - 8}
-          y1={py(max * f)}
-          y2={py(max * f)}
-          stroke="var(--color-seam)"
-          strokeDasharray="3 4"
-          strokeWidth="1"
-        />
+    <div className="space-y-2">
+      {LANES.map((l, i) => (
+        <div key={l.key} className="flex items-center gap-2">
+          <span className={`num w-[76px] shrink-0 text-[11px] ${l.color}`}>{l.name}</span>
+          <span className="lane h-[10px] flex-1">
+            <span
+              className={`lane-fill ${l.cls} block`}
+              style={{ width: `${(vals[i] / max) * 100}%` }}
+            />
+          </span>
+          <span className="num w-[70px] shrink-0 text-right text-[11px] text-fog">
+            {fmt(vals[i])}
+          </span>
+        </div>
       ))}
-      <path
-        d={line((s) => project.runs[s].tsgo.m)}
-        fill="none"
-        stroke="var(--color-tsgo)"
-        strokeWidth="2.2"
-      />
-      <path
-        d={line((s) => project.runs[s].tsrs.m)}
-        fill="none"
-        stroke="var(--color-ember)"
-        strokeWidth="2.2"
-      />
-      {THREADS.map((s, i) => (
-        <g key={s}>
-          <circle
-            cx={px(i)}
-            cy={py(project.runs[s].tsgo.m)}
-            r={markIndex === i ? 4.5 : 2.8}
-            fill="var(--color-tsgo)"
-          />
-          <circle
-            cx={px(i)}
-            cy={py(project.runs[s].tsrs.m)}
-            r={markIndex === i ? 4.5 : 2.8}
-            fill="var(--color-ember)"
-          />
-          <text
-            x={px(i)}
-            y={H + LABEL - 7}
-            fontSize="12"
-            fill="var(--color-ash)"
-            textAnchor={i === 0 ? 'start' : i === 2 ? 'end' : 'middle'}
-            fontFamily="var(--font-mono)"
-          >
-            {s === 't4' ? '4 线程' : s === 't8' ? '8 线程' : '16 线程'}
-          </text>
-        </g>
-      ))}
-    </svg>
+    </div>
   );
 }
 
-function Detail({ project, setting }: { project: Project; setting: SettingId }) {
-  const run = project.runs[setting];
-  const diff = ERROR_DIFFS[setting].find((e) => e.project === project.name);
+function Detail({ project }: { project: Project }) {
   return (
     <aside className="panel panel-glow sticky top-24 p-5" aria-live="polite">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h3 className="num text-lg font-bold text-bone">{project.name}</h3>
-        <span className="chip">{SETTINGS.find((s) => s.id === setting)?.label}</span>
+        <span className="chip">默认设置</span>
       </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-3">
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3 xl:grid-cols-1">
         <div className="rounded-lg border border-ember/30 bg-ember/8 p-3">
-          <p className="num text-[11px] text-ash">时间</p>
-          <p className="num mt-1 text-3xl font-bold text-molten">{fmtRatio(run.tsrs.rt)}</p>
+          <p className="num text-[11px] text-ash">--fast 时间优势</p>
+          <p className="num mt-1 text-3xl font-bold text-molten">{fmtRatio(project.rtf)}</p>
+        </div>
+        <div className="rounded-lg border border-seam2 bg-soot p-3">
+          <p className="num text-[11px] text-ash">默认模式时间优势</p>
+          <p className="num mt-1 text-3xl font-bold text-flare">{fmtRatio(project.rt)}</p>
         </div>
         <div className="rounded-lg border border-tsgo/30 bg-tsgo/8 p-3">
-          <p className="num text-[11px] text-ash">内存</p>
-          <p className="num mt-1 text-3xl font-bold text-tsgo">{fmtRatio(run.tsrs.rm)}</p>
+          <p className="num text-[11px] text-ash">--fast 内存优势</p>
+          <p className="num mt-1 text-3xl font-bold text-tsgo">{fmtRatio(project.rmf)}</p>
         </div>
       </div>
 
       <dl className="num grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-[13px]">
-        <dt className="text-ash">tsgo 耗时</dt>
-        <dd className="text-right text-fog">{fmtTime(run.tsgo.t)}</dd>
+        <dt className="text-ash">TypeScript 耗时</dt>
+        <dd className="text-right text-fog">{fmtTime(project.ts.t)}</dd>
         <dt className="text-ash">tsrs 耗时</dt>
-        <dd className="text-right font-bold text-flare">{fmtTime(run.tsrs.t)}</dd>
-        <dt className="text-ash">tsgo 峰值内存</dt>
-        <dd className="text-right text-fog">{fmtMem(run.tsgo.m)}</dd>
+        <dd className="text-right font-bold text-flare">{fmtTime(project.rs.t)}</dd>
+        <dt className="text-ash">tsrs --fast 耗时</dt>
+        <dd className="text-right font-bold text-molten">{fmtTime(project.fast.t)}</dd>
+        <dt className="text-ash">TypeScript 峰值内存</dt>
+        <dd className="text-right text-fog">{fmtMem(project.ts.m)}</dd>
         <dt className="text-ash">tsrs 峰值内存</dt>
-        <dd className="text-right font-bold text-flare">{fmtMem(run.tsrs.m)}</dd>
+        <dd className="text-right font-bold text-flare">{fmtMem(project.rs.m)}</dd>
+        <dt className="text-ash">tsrs --fast 峰值内存</dt>
+        <dd className="text-right font-bold text-molten">{fmtMem(project.fast.m)}</dd>
         <dt className="text-ash">错误数</dt>
-        <dd className="text-right text-fog">
-          {diff
-            ? `${diff.tsgo.toLocaleString('en-US')} → ${diff.tsrs.toLocaleString('en-US')}`
-            : '与 tsgo 相同'}
-        </dd>
+        <dd className="text-right text-acid">{project.errors} · 三者相同</dd>
       </dl>
 
-      <div className="mt-5 border-t border-seam pt-4">
-        <p className="num mb-1 text-[11px] tracking-wider text-ash uppercase">峰值内存随线程数</p>
-        <MemoryCurve project={project} setting={setting} />
+      <div className="mt-5 space-y-4 border-t border-seam pt-4">
+        <div>
+          <p className="num mb-2 text-[11px] tracking-wider text-ash uppercase">耗时对比</p>
+          <DetailBars project={project} metric="time" />
+        </div>
+        <div>
+          <p className="num mb-2 text-[11px] tracking-wider text-ash uppercase">峰值内存对比</p>
+          <DetailBars project={project} metric="mem" />
+        </div>
         <Legend />
       </div>
     </aside>
@@ -132,57 +94,57 @@ function Detail({ project, setting }: { project: Project; setting: SettingId }) 
 }
 
 export function Bench() {
-  const [setting, setSetting] = useState<SettingId>('default');
   const [metric, setMetric] = useState<Metric>('time');
   const [scale, setScale] = useState<Scale>('linear');
-  const [sort, setSort] = useState<Sort>('ratio');
+  const [sort, setSort] = useState<Sort>('fast');
   const [view, setView] = useState<View>('race');
   const [query, setQuery] = useState('');
-  const [sel, setSel] = useState('mui-docs');
+  const [sel, setSel] = useState('mikro-orm');
+  const [showRs, setShowRs] = useState(true);
+  const [showFast, setShowFast] = useState(true);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
     const filtered = PROJECTS.filter((p) => p.name.toLowerCase().includes(q));
-    const val = (p: Project, who: 'tsgo' | 'tsrs') =>
-      metric === 'time' ? p.runs[setting][who].t : p.runs[setting][who].m;
+    const val = (p: Project, who: 'ts' | 'rs' | 'fast') =>
+      metric === 'time' ? p[who].t : p[who].m;
     return filtered.sort((a, b) => {
       switch (sort) {
-        case 'ratio':
-          return (
-            (metric === 'time' ? b.runs[setting].tsrs.rt : b.runs[setting].tsrs.rm) -
-            (metric === 'time' ? a.runs[setting].tsrs.rt : a.runs[setting].tsrs.rm)
-          );
-        case 'tsgo':
-          return val(b, 'tsgo') - val(a, 'tsgo');
-        case 'tsrs':
-          return val(b, 'tsrs') - val(a, 'tsrs');
+        case 'fast':
+          return (metric === 'time' ? b.rtf : b.rmf) - (metric === 'time' ? a.rtf : a.rmf);
+        case 'rs':
+          return (metric === 'time' ? b.rt : b.rm) - (metric === 'time' ? a.rt : a.rm);
+        case 'ts':
+          return val(b, 'ts') - val(a, 'ts');
         case 'name':
           return a.name.localeCompare(b.name);
       }
     });
-  }, [setting, metric, sort, query]);
+  }, [metric, sort, query]);
 
   const max = useMemo(() => {
-    const pick = (p: Project) =>
-      metric === 'time' ? p.runs[setting].tsgo.t : p.runs[setting].tsgo.m;
+    const pick = (p: Project) => (metric === 'time' ? p.ts.t : p.ts.m);
     return Math.max(...PROJECTS.map(pick));
-  }, [setting, metric]);
+  }, [metric]);
 
   const width = (v: number) =>
     scale === 'linear' ? (v / max) * 100 : (Math.log1p(v * 100) / Math.log1p(max * 100)) * 100;
 
   const active = PROJECTS.find((p) => p.id === sel) ?? PROJECTS[0];
-  const current = SETTINGS.find((s) => s.id === setting)!;
   const fmt = metric === 'time' ? fmtTime : fmtMem;
+  const visible = LANES.filter(
+    (l) => l.key === 'ts' || (l.key === 'rs' && showRs) || (l.key === 'fast' && showFast),
+  );
 
   const reset = () => {
-    setSetting('default');
     setMetric('time');
     setScale('linear');
-    setSort('ratio');
+    setSort('fast');
     setView('race');
     setQuery('');
-    setSel('mui-docs');
+    setSel('mikro-orm');
+    setShowRs(true);
+    setShowFast(true);
   };
 
   return (
@@ -192,38 +154,23 @@ export function Bench() {
       </div>
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHead
-          tag="Benchmarks · 17 projects"
+          tag="Benchmarks · 19 projects"
           title={
             <>
-              十七个项目，<span className="fire-text">逐条对跑。</span>
+              十九个项目，<span className="fire-text">三方对跑。</span>
             </>
           }
           lead={
             <>
-              同一台机器、同一份 tsconfig、<code className="num text-fog">--noEmit</code>
-              。切换线程数与指标，点任意一行看它的完整读数。
+              TypeScript 7.1 beta、tsrs 默认模式、tsrs <code className="num text-fog">--fast</code>
+              ，同一台机器、同一份 tsconfig、
+              <code className="num text-fog">--noEmit</code>
+              。切换指标与刻度，点任意一行看完整读数。
             </>
           }
         />
 
         <Reveal className="panel mb-5 flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3.5">
-          <div className="flex items-center gap-2">
-            <span className="num text-xs text-ash">线程</span>
-            <div className="seg" role="group" aria-label="checker 线程数">
-              {SETTINGS.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  aria-pressed={setting === s.id}
-                  title={s.note}
-                  onClick={() => setSetting(s.id)}
-                >
-                  {s.rail}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="flex items-center gap-2">
             <span className="num text-xs text-ash">指标</span>
             <div className="seg" role="group" aria-label="指标">
@@ -267,12 +214,24 @@ export function Bench() {
               onChange={(e) => setSort(e.target.value as Sort)}
               aria-label="排序方式"
             >
-              <option value="ratio">按优势倍数</option>
-              <option value="tsgo">按 tsgo 读数</option>
-              <option value="tsrs">按 tsrs 读数</option>
+              <option value="fast">按 --fast 优势</option>
+              <option value="rs">按默认模式优势</option>
+              <option value="ts">按 TypeScript 读数</option>
               <option value="name">按名称</option>
             </select>
           </label>
+
+          <div className="flex items-center gap-2">
+            <span className="num text-xs text-ash">赛道</span>
+            <div className="seg" role="group" aria-label="显示哪些编译器">
+              <button type="button" aria-pressed={showRs} onClick={() => setShowRs((v) => !v)}>
+                tsrs
+              </button>
+              <button type="button" aria-pressed={showFast} onClick={() => setShowFast((v) => !v)}>
+                --fast
+              </button>
+            </div>
+          </div>
 
           <input
             type="search"
@@ -327,10 +286,15 @@ export function Bench() {
             {view === 'race' ? (
               <ol className="space-y-1">
                 {rows.map((p) => {
-                  const r = p.runs[setting];
-                  const go = metric === 'time' ? r.tsgo.t : r.tsgo.m;
-                  const rs = metric === 'time' ? r.tsrs.t : r.tsrs.m;
-                  const ratio = metric === 'time' ? r.tsrs.rt : r.tsrs.rm;
+                  const ratio = showFast
+                    ? metric === 'time'
+                      ? p.rtf
+                      : p.rmf
+                    : showRs
+                      ? metric === 'time'
+                        ? p.rt
+                        : p.rm
+                      : null;
                   const selected = sel === p.id;
                   return (
                     <li key={p.id}>
@@ -338,7 +302,7 @@ export function Bench() {
                         type="button"
                         onClick={() => setSel(p.id)}
                         aria-pressed={selected}
-                        aria-label={`${p.name}：tsgo ${fmt(go)}，tsrs ${fmt(rs)}，优势 ${fmtRatio(ratio)}`}
+                        aria-label={`${p.name}：TypeScript ${fmt(p.ts[metric === 'time' ? 't' : 'm'])}，tsrs ${fmt(p.rs[metric === 'time' ? 't' : 'm'])}，--fast ${fmt(p.fast[metric === 'time' ? 't' : 'm'])}`}
                         className={`grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_64px] gap-x-3 gap-y-1.5 rounded-lg px-2 py-2 text-left transition-colors md:grid-cols-[minmax(120px,180px)_minmax(0,1fr)_76px] md:items-center ${
                           selected ? 'bg-ember/10 ring-1 ring-ember/40' : 'hover:bg-slab'
                         }`}
@@ -347,35 +311,31 @@ export function Bench() {
                           {p.name}
                         </span>
                         <span className="col-span-2 col-start-1 row-start-2 min-w-0 space-y-1 md:col-span-1 md:col-start-2 md:row-start-1">
-                          <span className="flex items-center gap-2">
-                            <span className="lane h-[9px] flex-1">
-                              <span
-                                className="lane-fill go block"
-                                style={{ width: `${width(go)}%` }}
-                              />
-                            </span>
-                            <span className="num w-[74px] shrink-0 text-right text-[11px] text-tsgo">
-                              {fmt(go)}
-                            </span>
-                          </span>
-                          <span className="flex items-center gap-2">
-                            <span className="lane h-[9px] flex-1">
-                              <span
-                                className="lane-fill rs block"
-                                style={{ width: `${width(rs)}%` }}
-                              />
-                            </span>
-                            <span className="num w-[74px] shrink-0 text-right text-[11px] text-flare">
-                              {fmt(rs)}
-                            </span>
-                          </span>
+                          {visible.map((l) => {
+                            const v = p[l.key][metric === 'time' ? 't' : 'm'];
+                            return (
+                              <span key={l.key} className="flex items-center gap-2">
+                                <span className="lane h-[9px] flex-1">
+                                  <span
+                                    className={`lane-fill ${l.cls} block`}
+                                    style={{ width: `${width(v)}%` }}
+                                  />
+                                </span>
+                                <span
+                                  className={`num w-[74px] shrink-0 text-right text-[11px] ${l.color}`}
+                                >
+                                  {fmt(v)}
+                                </span>
+                              </span>
+                            );
+                          })}
                         </span>
                         <span
                           className={`num col-start-2 row-start-1 self-center rounded-md px-1.5 py-1 text-center text-[13px] font-bold md:col-start-3 ${
                             selected ? 'bg-ember/20 text-molten' : 'bg-soot text-fog'
                           }`}
                         >
-                          {fmtRatio(ratio)}
+                          {ratio === null ? '—' : fmtRatio(ratio)}
                         </span>
                       </button>
                     </li>
@@ -384,21 +344,22 @@ export function Bench() {
               </ol>
             ) : (
               <div className="overflow-x-auto">
-                <table className="num w-full min-w-[560px] text-[13px]">
+                <table className="num w-full min-w-[720px] text-[13px]">
                   <thead>
                     <tr className="border-b border-seam text-left text-[11px] tracking-wider text-ash uppercase">
                       <th className="px-2 py-2.5 font-normal">项目</th>
-                      <th className="px-2 py-2.5 text-right font-normal">tsgo 时间</th>
+                      <th className="px-2 py-2.5 text-right font-normal">TS 时间</th>
                       <th className="px-2 py-2.5 text-right font-normal">tsrs 时间</th>
-                      <th className="px-2 py-2.5 text-right font-normal">tsgo 内存</th>
+                      <th className="px-2 py-2.5 text-right font-normal">--fast 时间</th>
+                      <th className="px-2 py-2.5 text-right font-normal">TS 内存</th>
                       <th className="px-2 py-2.5 text-right font-normal">tsrs 内存</th>
-                      <th className="px-2 py-2.5 text-right font-normal">时间</th>
-                      <th className="px-2 py-2.5 text-right font-normal">内存</th>
+                      <th className="px-2 py-2.5 text-right font-normal">--fast 内存</th>
+                      <th className="px-2 py-2.5 text-right font-normal">快（fast）</th>
+                      <th className="px-2 py-2.5 text-right font-normal">错误</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((p) => {
-                      const r = p.runs[setting];
                       const selected = sel === p.id;
                       return (
                         <tr
@@ -409,16 +370,18 @@ export function Bench() {
                           }`}
                         >
                           <td className="px-2 py-2.5 font-semibold text-bone">{p.name}</td>
-                          <td className="px-2 py-2.5 text-right text-tsgo">{fmtTime(r.tsgo.t)}</td>
-                          <td className="px-2 py-2.5 text-right text-flare">{fmtTime(r.tsrs.t)}</td>
-                          <td className="px-2 py-2.5 text-right text-tsgo">{fmtMem(r.tsgo.m)}</td>
-                          <td className="px-2 py-2.5 text-right text-flare">{fmtMem(r.tsrs.m)}</td>
+                          <td className="px-2 py-2.5 text-right text-tsgo">{fmtTime(p.ts.t)}</td>
+                          <td className="px-2 py-2.5 text-right text-flare">{fmtTime(p.rs.t)}</td>
+                          <td className="px-2 py-2.5 text-right text-molten">
+                            {fmtTime(p.fast.t)}
+                          </td>
+                          <td className="px-2 py-2.5 text-right text-tsgo">{fmtMem(p.ts.m)}</td>
+                          <td className="px-2 py-2.5 text-right text-flare">{fmtMem(p.rs.m)}</td>
+                          <td className="px-2 py-2.5 text-right text-molten">{fmtMem(p.fast.m)}</td>
                           <td className="px-2 py-2.5 text-right font-bold text-molten">
-                            {fmtRatio(r.tsrs.rt)}
+                            {fmtRatio(p.rtf)}
                           </td>
-                          <td className="px-2 py-2.5 text-right font-bold text-fog">
-                            {fmtRatio(r.tsrs.rm)}
-                          </td>
+                          <td className="px-2 py-2.5 text-right text-acid">{p.errors}</td>
                         </tr>
                       );
                     })}
@@ -428,13 +391,12 @@ export function Bench() {
             )}
 
             <p className="num mt-4 border-t border-seam px-1 pt-3 text-[11px] leading-relaxed text-ash">
-              16 vCPU · 63 GB · Linux x86_64 · 2026-10-16 · {current.note} · 交错运行取中位数（tsrs
-              10 次，tsgo 3 次）
+              {BENCH_META.machine} · {BENCH_META.date} · {BENCH_META.versions} · {BENCH_META.method}
             </p>
           </Reveal>
 
           <Reveal delay={120} className="min-w-0">
-            <Detail project={active} setting={setting} />
+            <Detail project={active} />
           </Reveal>
         </div>
       </div>

@@ -1,32 +1,40 @@
 import { useEffect, useRef, useState } from 'react';
-import { WATCH } from '../data/bench';
+import { WATCH, WATCH_EXTRA, WATCH_META } from '../data/bench';
 import { useRace } from '../lib/hooks';
 import { Reveal, SectionHead } from './ui';
 
-const TIME_ROWS = WATCH.filter((w) => w.id !== 'peak' && w.id !== 'after');
-const MEM_ROWS = WATCH.filter((w) => w.id === 'peak' || w.id === 'after');
-
-const parseSeconds = (s: string) => (s.endsWith('ms') ? parseFloat(s) / 1000 : parseFloat(s));
-
-const EDIT_SNIPPETS: Record<string, { before: string; after: string }> = {
-  build: { before: '// 冷启动：整个仓库从头检查', after: '// 10,427 个文件，全部过一遍' },
+const EDIT_SNIPPETS: Record<string, { file: string; before: string; after: string }> = {
+  build: {
+    file: 'src/ · 9.4k 个文件',
+    before: '// 冷启动：整个 src/ 从头检查',
+    after: '// 9.4k 个文件，全部过一遍',
+  },
   first: {
-    before: 'expect(result).toBe(true);',
-    after: 'expect(result).toBe(true); // 改这行注释',
+    file: 'src/vs/workbench/browser/parts/editor.ts',
+    before: 'const visible = editors.length > 0;',
+    after: 'const visible = editors.length > 0; // 改这行注释',
   },
   repeat: {
-    before: 'expect(result).toBe(true); // 改这行注释',
-    after: 'expect(result).toBe(true); // 再改一次',
+    file: 'src/vs/workbench/browser/parts/editor.ts',
+    before: 'const visible = editors.length > 0; // 改这行注释',
+    after: 'const visible = editors.length > 0; // 再改一次',
   },
-  error: { before: 'const n: number = count;', after: 'const n: number = "count";' },
+  hub: {
+    file: 'src/vs/editor/common/editorCommon.ts · 枢纽文件',
+    before: 'export { createEditor } from "./editor";',
+    after: 'export { createModel } from "./model"; // 新增导出',
+  },
+  error: {
+    file: 'src/vs/base/common/strings.ts · 叶子文件',
+    before: 'const n: number = count;',
+    after: 'const n: number = "count";',
+  },
 };
 
 export function WatchLab() {
-  const [idx, setIdx] = useState(1);
-  const row = TIME_ROWS[idx];
-  const go = parseSeconds(row.tsgo);
-  const rs = parseSeconds(row.tsrs);
-  const race = useRace(go, rs, 3.2);
+  const [idx, setIdx] = useState(2);
+  const row = WATCH[idx];
+  const race = useRace([row.tsgo ?? 1, row.tsrs ?? 1], 3.2);
   const [edited, setEdited] = useState(false);
   const replayRef = useRef(race.replay);
   replayRef.current = race.replay;
@@ -45,6 +53,7 @@ export function WatchLab() {
   };
 
   const snippet = EDIT_SNIPPETS[row.id];
+  const ratio = row.tsgo && row.tsrs ? Math.round(row.tsgo / row.tsrs) : null;
 
   return (
     <section id="watch" className="relative py-16 md:py-24">
@@ -53,16 +62,17 @@ export function WatchLab() {
       </div>
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHead
-          tag="--watch · vscode · 10,427 files"
+          tag="--watch · vscode · src/ 9.4k files"
           title={
             <>
-              改一行，<span className="fire-text">等 31 毫秒。</span>
+              改一行，<span className="fire-text">等 59 毫秒。</span>
             </>
           }
           lead={
             <>
-              vscode 的一万多个文件，改一行动不到别人的测试文件。下面是一次 watch
-              会话的模拟编辑：选一个场景，按下按钮，看两个编译器各自多久报完这一轮。
+              vscode 的 9.4k 个源文件，一次注释编辑动不到别人。下面是一次 watch
+              会话的模拟编辑：选一个场景，按下按钮，看 tsrs 与 tsgo 各自多久报完这一轮。
+              macOS（FSEvents）与 Linux（inotify）都支持，Windows 的 --watch 还没落地。
             </>
           }
         />
@@ -72,7 +82,7 @@ export function WatchLab() {
             <div className="flex flex-wrap items-center gap-2 border-b border-seam px-4 py-3">
               <span className="num text-xs text-ash">场景</span>
               <div className="seg flex-wrap" role="group" aria-label="watch 场景">
-                {TIME_ROWS.map((w, i) => (
+                {WATCH.map((w, i) => (
                   <button
                     key={w.id}
                     type="button"
@@ -87,7 +97,7 @@ export function WatchLab() {
 
             <div className="px-4 py-5 md:px-6">
               <div className="mb-5 rounded-lg border border-seam bg-coal/80 p-4">
-                <p className="num mb-2 text-[11px] text-ash">src/testRunner.test.ts · 保存即触发</p>
+                <p className="num mb-2 text-[11px] text-ash">{snippet.file} · 保存即触发</p>
                 <p className="num text-sm">
                   <span className="mr-3 select-none text-seam2">42</span>
                   <span className={edited ? 'text-bone' : 'text-ash'}>
@@ -107,17 +117,17 @@ export function WatchLab() {
                     {
                       name: 'tsgo',
                       cls: 'go',
-                      pct: race.goPct,
-                      done: race.goDone,
-                      label: row.tsgo,
+                      pct: race.pct[0],
+                      done: race.done[0],
+                      label: row.tsgoLabel,
                       color: 'text-tsgo',
                     },
                     {
                       name: 'tsrs',
                       cls: 'rs',
-                      pct: race.rsPct,
-                      done: race.rsDone,
-                      label: row.tsrs,
+                      pct: race.pct[1],
+                      done: race.done[1],
+                      label: row.tsrsLabel,
                       color: 'text-flare',
                     },
                   ] as const
@@ -150,11 +160,13 @@ export function WatchLab() {
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-seam pt-4">
                 <p className="max-w-md text-[13px] leading-relaxed text-ash">{row.how}</p>
                 <div className="flex items-center gap-3">
-                  <span
-                    className={`num text-lg font-bold transition-opacity ${race.rsDone ? 'text-molten opacity-100' : 'opacity-30 text-ash'}`}
-                  >
-                    {row.ratio}
-                  </span>
+                  {ratio && (
+                    <span
+                      className={`num text-lg font-bold transition-opacity ${race.done[1] ? 'text-molten opacity-100' : 'text-ash opacity-30'}`}
+                    >
+                      {ratio}×
+                    </span>
+                  )}
                   <button
                     type="button"
                     className="btn-fire !px-5 !py-2.5 text-sm"
@@ -170,53 +182,84 @@ export function WatchLab() {
           <div className="space-y-4">
             <Reveal delay={100} className="panel p-5">
               <p className="num mb-3 text-[11px] tracking-wider text-ash uppercase">
-                同一次会话的内存读数
+                同一次会话的常驻内存（RSS）
               </p>
-              <div className="space-y-4">
-                {MEM_ROWS.map((w) => (
-                  <div key={w.id}>
-                    <div className="mb-1.5 flex items-baseline justify-between">
-                      <span className="text-sm font-semibold text-bone">{w.label}</span>
-                      <span className="num text-sm font-bold text-molten">{w.ratio}</span>
-                    </div>
-                    <div className="num grid grid-cols-2 gap-2 text-[13px]">
-                      <span className="rounded-md border border-tsgo/25 bg-tsgo/8 px-2.5 py-1.5 text-tsgo">
-                        tsgo {w.tsgo}
-                      </span>
-                      <span className="rounded-md border border-ember/25 bg-ember/8 px-2.5 py-1.5 text-flare">
-                        tsrs {w.tsrs}
-                      </span>
-                    </div>
-                    <p className="mt-1.5 text-xs leading-relaxed text-ash">{w.how}</p>
-                  </div>
-                ))}
+              <div className="num grid grid-cols-1 gap-2 text-[13px] sm:grid-cols-2">
+                <span className="rounded-md border border-tsgo/25 bg-tsgo/8 px-2.5 py-1.5 text-tsgo">
+                  tsgo {WATCH_EXTRA.rss.tsgo}
+                </span>
+                <span className="rounded-md border border-ember/25 bg-ember/8 px-2.5 py-1.5 text-flare">
+                  tsrs {WATCH_EXTRA.rss.tsrs}
+                </span>
               </div>
+              <p className="mt-2 text-xs leading-relaxed text-ash">
+                -b --watch 增量构建：tsrs {WATCH_EXTRA.rss.buildTsrs} · tsgo{' '}
+                {WATCH_EXTRA.rss.buildTsgo}。分支往返 8 轮（4,037 个文件改写）后，泄漏修复把 RSS
+                增长从每轮 +1.85 GB 压到约 0.5 GB。
+              </p>
             </Reveal>
 
             <Reveal delay={170} className="panel p-5">
-              <p className="num mb-3 text-[11px] tracking-wider text-ash uppercase">全部读数</p>
-              <table className="num w-full text-[12.5px]">
-                <thead>
-                  <tr className="text-left text-[11px] text-ash">
-                    <th className="pb-2 font-normal">会话</th>
-                    <th className="pb-2 text-right font-normal">tsgo</th>
-                    <th className="pb-2 text-right font-normal">tsrs</th>
-                    <th className="pb-2 text-right font-normal">倍数</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {WATCH.map((w) => (
-                    <tr key={w.id} className="border-t border-seam/50">
-                      <td className="py-2 pr-2 text-fog">{w.label}</td>
-                      <td className="py-2 text-right text-tsgo">{w.tsgo}</td>
-                      <td className="py-2 text-right text-flare">{w.tsrs}</td>
-                      <td className="py-2 text-right font-bold text-molten">{w.ratio}</td>
+              <p className="num mb-3 text-[11px] tracking-wider text-ash uppercase">
+                全部读数 · --watch 与 -b --watch
+              </p>
+              <div className="doc-scroll overflow-x-auto">
+                <table className="num w-full min-w-[420px] text-[12px]">
+                  <thead>
+                    <tr className="text-left text-[11px] text-ash">
+                      <th className="pb-2 pr-2 font-normal">场景</th>
+                      <th className="pb-2 text-right font-normal">tsrs</th>
+                      <th className="pb-2 text-right font-normal">tsgo</th>
+                      <th className="pb-2 text-right font-normal">-b tsrs</th>
+                      <th className="pb-2 text-right font-normal">-b tsgo</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {WATCH.map((w) => (
+                      <tr key={w.id} className="border-t border-seam/50">
+                        <td className="py-2 pr-2 text-fog">{w.label}</td>
+                        <td className="py-2 text-right text-flare">
+                          {w.tsrsLabel.split(' · ')[0]}
+                        </td>
+                        <td className="py-2 text-right text-tsgo">{w.tsgoLabel.split(' · ')[0]}</td>
+                        <td className="py-2 text-right text-flare/80">{w.buildTsrs}</td>
+                        <td className="py-2 text-right text-tsgo/80">{w.buildTsgo}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               <p className="num mt-3 text-[11px] leading-relaxed text-ash">
-                vscode · 10,427 个文件 · --watch -p src --noEmit · 8 vCPU · 5 次会话取中位数
+                {WATCH_META.machine} · {WATCH_META.project}
+              </p>
+            </Reveal>
+
+            <Reveal delay={240} className="panel p-5">
+              <p className="num mb-3 text-[11px] tracking-wider text-ash uppercase">会话细节</p>
+              <ul className="space-y-2 text-[13px] leading-relaxed text-ash">
+                <li>
+                  <span className="font-semibold text-bone">空闲零开销：</span>
+                  {WATCH_EXTRA.idle}
+                </li>
+                <li>
+                  <span className="font-semibold text-bone">退出干脆：</span>
+                  {WATCH_EXTRA.ctrlc}
+                </li>
+                <li>
+                  <span className="font-semibold text-bone">场景基线：</span>
+                  {WATCH_EXTRA.suites}
+                </li>
+                <li>
+                  <span className="font-semibold text-bone">改动检测：</span>
+                  tsrs {WATCH_EXTRA.detected.tsrs} · tsgo {WATCH_EXTRA.detected.tsgo}（macOS
+                  FSEvents；可用 TSRS_WATCH_BACKEND 切 kqueue）。
+                </li>
+              </ul>
+              <p className="num mt-3 border-t border-seam pt-3 text-[11px] leading-relaxed text-ash">
+                对照为 {WATCH_META.reference}。来源：
+                <a className="link-u" href={WATCH_META.source} rel="noreferrer" target="_blank">
+                  notes/watch-macos.md
+                </a>
               </p>
             </Reveal>
           </div>

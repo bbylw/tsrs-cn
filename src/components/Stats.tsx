@@ -12,68 +12,72 @@ type Stat = {
 
 const STATS: Stat[] = [
   {
-    n: 16.87,
+    n: 6.62,
     decimals: 2,
     unit: '×',
     accent: 'fire-text',
     cap: (
       <>
-        <b className="text-bone">最大加速</b>：mui-docs，12.66 s 压到 0.75 s（默认设置）
+        <b className="text-bone">最大加速</b>：mikro-orm，4.63 s 压到 0.70 s（tsrs --fast）
       </>
     ),
   },
   {
-    n: 8.23,
+    n: 4.17,
     decimals: 2,
     unit: '×',
     accent: 'fire-text',
     cap: (
       <>
-        <b className="text-bone">最大内存优势</b>：mui-docs，13.22 GiB 压到 1.61 GiB（16 线程）
+        <b className="text-bone">默认模式最大加速</b>：t3code-server，7.20 s 压到 1.73 s，不开
+        --fast
       </>
     ),
   },
   {
-    n: 53.36,
+    n: 2.75,
     decimals: 2,
     unit: '×',
     accent: 'fire-text',
     cap: (
       <>
-        <b className="text-bone">增量编辑</b>：vscode watch，1.76 s 压到 33 ms
+        <b className="text-bone">最大内存优势</b>：vscode，5.46 GiB 压到 1.99 GiB（tsrs --fast）
       </>
     ),
   },
   {
-    n: 3.7,
-    decimals: 2,
-    unit: '×',
-    accent: 'ice-text',
-    cap: (
-      <>
-        <b className="text-bone">最小加速</b>：Compiler，0.27 s 压到 0.07 s（16 线程）
-      </>
-    ),
-  },
-  {
-    n: 2.05,
-    decimals: 2,
-    unit: '×',
-    accent: 'ice-text',
-    cap: (
-      <>
-        <b className="text-bone">最小内存优势</b>：Compiler，272 MiB 压到 133 MiB（16 线程）
-      </>
-    ),
-  },
-  {
-    n: 0,
+    n: 19,
     decimals: 0,
-    unit: '',
+    unit: '/19',
     accent: 'text-acid',
     cap: (
       <>
-        <b className="text-bone">至今发现的正确性错误</b>：在现有项目的测试里一个也没有
+        <b className="text-bone">诊断逐项相同</b>：TypeScript、tsrs、tsrs --fast
+        在每个项目上文件、位置、错误码全一致
+      </>
+    ),
+  },
+  {
+    n: 59,
+    decimals: 0,
+    unit: ' ms',
+    accent: 'ice-text',
+    cap: (
+      <>
+        <b className="text-bone">增量编辑</b>：vscode watch 重复改注释，tsgo 要 1.49 s（macOS M3
+        Max）
+      </>
+    ),
+  },
+  {
+    n: 61,
+    decimals: 0,
+    unit: '×',
+    accent: 'ice-text',
+    cap: (
+      <>
+        <b className="text-bone">lint + 类型检查一次跑完</b>：VS Code 上 4.8 s，ESLint + tsc 要 293
+        s（8 核，0.24.0）
       </>
     ),
   },
@@ -101,11 +105,11 @@ export function Stats() {
           <h2 className="h2">
             <span className="text-ash">同一条命令，</span>
             <br />
-            两份时间。
+            三份时间。
           </h2>
           <p className="max-w-sm text-sm leading-relaxed text-ash">
-            仓库 README 里那张图是另一轮测量：8 vCPU，七个项目，1/2/4/8 线程。 这里这组数字来自 16
-            vCPU 上的完整跑分，17 个项目。
+            前四个数字来自上游发布记分牌：2026-10-28，Apple M3 Max（14 核 / 36 GB），19 个项目，npm
+            发布二进制。watch 与 lint 数字各有出处，页内逐条标注。
           </p>
         </Reveal>
         <div ref={ref} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

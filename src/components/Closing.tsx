@@ -17,8 +17,8 @@ export function Credits() {
         </Reveal>
         <Reveal delay={100}>
           <p className="mt-6 max-w-xl text-sm leading-relaxed text-ash">
-            Depot 为持续集成提供机器，基准测试就跑在上面；Owner.com 赞助了项目的初期工作。我们不收
-            Pull Request——没有足够精力审查，但 issue 是开的。
+            Depot 为持续集成提供机器；Owner.com 赞助了项目的初期工作。我们不收 Pull
+            Request——没有足够精力审查，但 issue 是开的。
           </p>
         </Reveal>
       </div>
@@ -48,8 +48,8 @@ export function FinalCta() {
         </Reveal>
         <Reveal delay={120}>
           <div className="space-y-3">
-            <Cmd text="pnpm add -D tsrs" />
-            <Cmd text="pnpm exec tsrs --noEmit" />
+            <Cmd text="pnpm add -D tsrs@next" />
+            <Cmd text="pnpm exec tsrs --noEmit --fast" />
           </div>
           <p className="mt-5 max-w-md text-sm leading-relaxed text-fog">
             不想装也行，
@@ -94,20 +94,20 @@ export function Foot() {
             <a className="text-fog hover:text-flare" href="#watch">
               增量编辑
             </a>
+            <a className="text-fog hover:text-flare" href="#fast">
+              快速模式
+            </a>
             <a className="text-fog hover:text-flare" href="#start">
               上手
             </a>
-            <a className="text-fog hover:text-flare" href="#docs">
+            <a className="text-fog hover:text-flare" href="#/docs">
               文档
-            </a>
-            <a className="text-fog hover:text-flare" href="#port">
-              移植
             </a>
           </nav>
           <p className="num mt-4 border-t border-seam pt-3 text-xs text-ash">
-            0.18.0 · ts7.1.0-dev
+            7.1.0-beta.tsrs2
             <br />
-            2026-10-21 查于 npm
+            2026-11-16 发布 · 2026-11-18 同步
           </p>
         </Reveal>
         <Reveal delay={120} className="panel p-5">
