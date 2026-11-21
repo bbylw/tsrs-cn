@@ -100,7 +100,10 @@ OXLINT_TSGOLINT_PATH="$PWD/target/debug/tsrs-lint" oxlint --type-aware`}
       <p>
         程序构建与绑定使用原生并行 loader 并遵守 <code>singleThreaded</code>；语义报告与 lint
         规则共用拥有该文件的 checker 及其缓存。content mapper 程序需要{' '}
-        <code>--runExternalCode</code> 或 <code>TSRS_LINT_RUN_EXTERNAL_CODE=1</code>。
+        <code>--runExternalCode</code> 或 <code>TSRS_LINT_RUN_EXTERNAL_CODE=1</code>。自 tsrs3
+        起，headless 诊断直接序列化、不再构建中间 JSON 值树（#1011），
+        <code>no-unsafe-enum-assignment</code>{' '}
+        在两个受约束类型共享原始包装类型时跳过递归的原型成员比较（#1012）。
       </p>
 
       <H2 id="lint-bench">基准</H2>
