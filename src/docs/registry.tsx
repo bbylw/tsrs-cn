@@ -12,7 +12,7 @@ import { Contributing } from './pages/Contributing';
 import { Playground } from './pages/Playground';
 import { BenchDoc, ConsistencyDoc, WatchDoc } from './pages/Evidence';
 
-export const SYNC_DATE = '2026-11-18';
+export const SYNC_DATE = '2026-11-21';
 
 const blob = (path: string) => `https://github.com/oxc-project/tsrs/blob/main/${path}`;
 
@@ -41,7 +41,7 @@ export const PAGES: DocPage[] = [
   {
     slug: 'install',
     title: '安装与第一次运行',
-    keywords: '安装 install pnpm npm bun yarn next 版本 平台 二进制 dlx',
+    keywords: '安装 install pnpm npm bun yarn latest 版本 平台 二进制 dlx',
     lead: '四种包管理器、版本号怎么读、八个原生平台包与 WASM 兜底。',
     source: blob('docs/USAGE.md'),
     Component: Installation,

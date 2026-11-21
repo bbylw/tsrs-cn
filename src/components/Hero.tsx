@@ -323,16 +323,16 @@ export function Hero() {
               $
             </span>
             <code className="num min-w-0 flex-1 overflow-x-auto text-[13px] whitespace-nowrap text-bone">
-              pnpm add -D tsrs@next
+              pnpm add -D tsrs
             </code>
-            <CopyButton text="pnpm add -D tsrs@next" targetLabel="安装命令" />
+            <CopyButton text="pnpm add -D tsrs" targetLabel="安装命令" />
           </div>
 
           <p
             className="stage-in num mt-5 text-xs text-ash"
             style={{ '--sd': '400ms' } as CSSProperties}
           >
-            7.1.0-beta.tsrs2 · Apache-2.0 · 目标 TypeScript 7.1 · 19/19 基准零差异
+            7.1.0-beta.tsrs4 · Apache-2.0 · 目标 TypeScript 7.1 · 19/19 基准零差异
           </p>
         </div>
 

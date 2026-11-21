@@ -6,11 +6,7 @@ const PMS = ['pnpm', 'npm', 'bun', 'yarn'] as const;
 type Pm = (typeof PMS)[number];
 
 const addCmd = (pm: Pm) =>
-  pm === 'npm'
-    ? 'npm i -D tsrs@next'
-    : pm === 'yarn'
-      ? 'yarn add -D tsrs@next'
-      : `${pm} add -D tsrs@next`;
+  pm === 'npm' ? 'npm i -D tsrs' : pm === 'yarn' ? 'yarn add -D tsrs' : `${pm} add -D tsrs`;
 const runCmd = (pm: Pm) =>
   pm === 'bun'
     ? 'bunx tsrs --noEmit --fast'
@@ -27,7 +23,7 @@ const FLAGS: { code: string; desc: string; ok: boolean }[] = [
   { code: '--maxMemory 12G', desc: '内存上限（--noEmit）', ok: true },
   { code: '--lazyMembers / --noLazyMembers', desc: '惰性成员单独开关', ok: true },
   { code: 'TSRS_LAZY_DTS=1', desc: '惰性 .d.ts 解析', ok: true },
-  { code: '--init / --showConfig', desc: '暂不支持 · 退出码 5', ok: false },
+  { code: '--init', desc: '暂不支持 · 退出码 5', ok: false },
   { code: '--watch（Windows）', desc: '暂不支持', ok: false },
 ];
 
@@ -236,9 +232,10 @@ export function Quickstart() {
             <h3 className="mb-3 text-lg font-semibold text-bone">先装上它</h3>
             <Cmd compact text={addCmd(pm)} />
             <p className="lead-pretty mt-4 text-sm leading-relaxed text-ash">
-              <code className="num text-molten">@next</code> 指向 7.1.0-beta.tsrs2。包本身只是入口，
-              二进制按平台分发：macOS arm64/x64、Linux x64/arm64（gnu 与 musl）、Windows
-              x64/arm64，共八个原生包。无原生包平台用 <b className="text-fog">@tsrs/wasm</b> 兜底。
+              <code className="num text-molten">latest</code> 指向
+              7.1.0-beta.tsrs4。包本身只是入口， 二进制按平台分发：macOS arm64/x64、Linux
+              x64/arm64（gnu 与 musl）、Windows x64/arm64，共八个原生包。无原生包平台用{' '}
+              <b className="text-fog">@tsrs/wasm</b> 兜底。
             </p>
           </Reveal>
 

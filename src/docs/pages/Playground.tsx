@@ -79,8 +79,7 @@ export function Playground() {
               下的 JSON 诊断、<code>--checkerCostCache</code>，以及超过 4 GiB 的程序
             </>,
             <>
-              除 <code>--init</code> / <code>--showConfig</code> 之外均可用，见{' '}
-              <a href="#/docs/cli">CLI</a>
+              除 <code>--init</code> 之外均可用，见 <a href="#/docs/cli">CLI</a>
             </>,
           ],
           [
@@ -98,7 +97,7 @@ export function Playground() {
           CLI：
         </p>
       </Callout>
-      <Cmd text="pnpm add -D tsrs@next" />
+      <Cmd text="pnpm add -D tsrs" />
       <p>
         WASM 构建在 Node 与浏览器里的用法见 <a href="#/docs/wasm">WebAssembly</a>；也可以按上游的{' '}
         <Ext href="https://github.com/oxc-project/tsrs/blob/main/playground/README.md">

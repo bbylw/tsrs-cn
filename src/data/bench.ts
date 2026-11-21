@@ -464,8 +464,18 @@ export const CONFORMANCE = [
   },
 ];
 
-/** Recent releases (GitHub releases API, fetched 2026-11-18). */
+/** Recent releases (GitHub releases API, fetched 2026-11-21). */
 export const RELEASES = [
+  {
+    v: '7.1.0-beta.tsrs4',
+    date: '2026-11-20',
+    note: '支持 --showConfig（21 个 tsc/showConfig 场景基线逐字节一致）；--type-check 恢复报告全局与声明诊断；模块解析、增量与构建/watch 的一批 panic 与路径修复。',
+  },
+  {
+    v: '7.1.0-beta.tsrs3',
+    date: '2026-11-18',
+    note: '首个发布到 npm latest 的 TypeScript 对齐版本（默认安装取代 0.25.0）；--type-check 不再报告 suggestion 诊断；类型错误带消息链；六个编译器修复对齐 tsgo。',
+  },
   {
     v: '7.1.0-beta.tsrs2',
     date: '2026-11-16',

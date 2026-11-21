@@ -5,36 +5,34 @@ export function Status() {
     <>
       <H2 id="status-now">当前状态</H2>
       <p>
-        最新发布是 <strong>7.1.0-beta.tsrs2</strong>（2026-11-16），它是第一个使用 TypeScript
-        对齐版本号的 <strong>npm</strong> 发布：同一 scheme 下的 <code>7.1.0-beta.tsrs1</code>{' '}
-        只到达了 crates.io， 其 npm 发布卡在安装后包的 smoke test 上——那一步当时还按{' '}
-        <code>0.25.0-ts7.1.0-beta</code> 格式校验（#1000）。 Cargo crate 与十个 npm
-        包（主包、八个原生平台包、WebAssembly）共享 <code>7.1.0-beta.tsrs2</code>。
+        最新发布是 <strong>7.1.0-beta.tsrs4</strong>（2026-11-20）。TypeScript 对齐版本从{' '}
+        <strong>7.1.0-beta.tsrs3</strong>（2026-11-18）起直接发布到 npm 的 <code>latest</code>{' '}
+        标签， 取代 <code>0.25.0-ts7.1.0-beta</code> 成为默认安装；更早的 tsrs1 只到达
+        crates.io，tsrs2 是首个 TypeScript 对齐版本的 npm 发布（当时仍在 <code>next</code> 通道）。
+        Cargo crate 与十个 npm 包（主包、八个原生平台包、 WebAssembly）共享同一版本号。
       </p>
       <DocTable
         head={['npm 标签', '当前指向', '说明']}
         rows={[
           [
             'latest',
-            '0.25.0-ts7.1.0-beta',
-            '旧的 <tsrs 版本>-ts<TypeScript 版本> 格式，仍是裸装得到的版本',
+            '7.1.0-beta.tsrs4',
+            'TypeScript 对齐版本，裸装默认得到；tsrs3 起直接发布到这里',
           ],
-          ['next', '7.1.0-beta.tsrs2', 'TypeScript 对齐版本按预发布处理，发布到 next'],
+          ['next', '不再发布', '旧通道，主包最后指向 7.1.0-beta.tsrs2，tsrs3 起不再维护'],
         ]}
       />
-      <Callout kind="warn">
+      <Callout kind="info">
         <p>
-          上表是<strong>截至 2026-11-18 的实际 registry 状态</strong>，不要把它当成永久规则：提交{' '}
-          <code>ci(release): publish npm packages to latest (#1014)</code> 于 2026-11-17 落地，
-          <strong>晚于</strong> 7.1.0-beta.tsrs2 的发布。也就是说发布流水线此后改为把 npm 包发到{' '}
-          <code>latest</code>，下一个版本有可能直接出现在 <code>latest</code> 上。在核实之前，
-          不要把标签走向写进脚本或文档断言里；需要确定版本时请用精确版本号。
+          <code>ci(release): publish npm packages to latest (#1014)</code> 于 2026-11-17
+          落地，随后发布的 tsrs3 直接进入 <code>latest</code>，tsrs4
+          跟进。需要确定版本时仍建议写精确 版本号，不要把标签走向写进脚本或文档断言里。
         </p>
       </Callout>
       <p>
-        针对 <code>7.1.0-beta.tsrs2</code> 的构建把 <code>tsrs -p . --fast</code> 也纳入 PGO 与
-        Linux BOLT 训练， 快路径的代码不再被排布为冷代码；发布二进制用 Rust 1.100.0 构建，已发布的
-        crates 也把最低 Rust 版本提到 1.100（#990）。
+        TypeScript 对齐版本的构建把 <code>tsrs -p . --fast</code> 也纳入 PGO 与 Linux BOLT 训练，
+        快路径的代码不再被排布为冷代码；发布二进制用 Rust 1.100.0 构建，已发布的 crates 也把最低
+        Rust 版本提到 1.100（#990）。
       </p>
 
       <H2 id="status-versioning">版本号规则</H2>
@@ -110,6 +108,16 @@ export function Status() {
             '2026-11-16',
             '首个 TypeScript 对齐版本的 npm 发布；linter 默认启用 fast；--type-check 只报告被 lint 的文件',
           ],
+          [
+            '7.1.0-beta.tsrs3',
+            '2026-11-18',
+            '首个发布到 npm latest 的 TypeScript 对齐版本；suggestion 不再让 --type-check 失败；lint 类型错误带消息链；六个编译器修复对齐 tsgo',
+          ],
+          [
+            '7.1.0-beta.tsrs4',
+            '2026-11-20',
+            '支持 --showConfig（21 个 showConfig 场景基线逐字节一致）；--type-check 恢复报告全局与声明诊断；模块解析、增量与构建/watch 的一批 panic 与路径修复',
+          ],
         ]}
       />
 
@@ -128,8 +136,7 @@ export function Status() {
       <H2 id="status-gaps">已知限制入口</H2>
       <ul>
         <li>
-          不支持的命令：<code>--init</code>、<code>--showConfig</code>；Windows 上{' '}
-          <code>--watch</code> 未移植。
+          不支持的命令：<code>--init</code>；Windows 上 <code>--watch</code> 未移植。
         </li>
         <li>语言服务器未移植自动类型获取、性能/项目遥测与 profiling 请求。</li>
         <li>

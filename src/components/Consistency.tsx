@@ -149,10 +149,6 @@ export function Consistency({ docPage = false }: { docPage?: boolean }) {
                 <code className="num rounded bg-coal px-1.5 py-0.5 text-[12px] text-fog">
                   --init
                 </code>{' '}
-                与{' '}
-                <code className="num rounded bg-coal px-1.5 py-0.5 text-[12px] text-fog">
-                  --showConfig
-                </code>{' '}
                 暂不支持（退出码 5），Windows 上{' '}
                 <code className="num rounded bg-coal px-1.5 py-0.5 text-[12px] text-fog">
                   --watch

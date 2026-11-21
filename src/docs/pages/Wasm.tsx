@@ -12,9 +12,9 @@ export function Wasm() {
       </p>
       <CodeBlock
         lang="sh"
-        code={`pnpm add @tsrs/wasm@7.1.0-beta.tsrs2
-# 或跟随 next 标签（与 tsrs 主包同一预发布通道）：
-pnpm add @tsrs/wasm@next`}
+        code={`pnpm add @tsrs/wasm@7.1.0-beta.tsrs4
+# 或者不带 tag，从 latest 安装同一版本：
+pnpm add @tsrs/wasm`}
       />
 
       <H2 id="wasm-node">在 Node 中使用</H2>

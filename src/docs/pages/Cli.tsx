@@ -5,11 +5,11 @@ export function Cli() {
     <>
       <H2 id="cli-basic">基本用法</H2>
       <p>
-        安装 7.1.0-beta.tsrs2 后，用它取代 <code>tsc</code>：
+        安装 7.1.0-beta.tsrs4 后，用它取代 <code>tsc</code>：
       </p>
       <CodeBlock
         lang="sh"
-        code={`pnpm add -D tsrs@7.1.0-beta.tsrs2
+        code={`pnpm add -D tsrs@7.1.0-beta.tsrs4
 pnpm exec tsrs -p path/to/project           # 编译
 pnpm exec tsrs -p path/to/project --noEmit  # 只做类型检查
 pnpm exec tsrs -p path/to/project --fast    # 启用 tsrs 的性能模式
@@ -53,7 +53,7 @@ pnpm exec tsrs --version`}
 
       <H2 id="cli-fast-table">性能选项：默认 vs fast 预设</H2>
       <p>
-        7.1.0-beta.tsrs2 的默认值就是被钉住的 TypeScript 的四 checker、文件分配与 checker 历史，成员
+        7.1.0-beta.tsrs4 的默认值就是被钉住的 TypeScript 的四 checker、文件分配与 checker 历史，成员
         eager 实例化； 保持行为不变的内部优化（控制流记忆化、并行解析）在两种模式下都启用。
         <code>--fast</code> 或 <code>TSRS_FAST=1</code> 为编译、watch 与 <code>--build</code>{' '}
         开启预设：
@@ -194,9 +194,11 @@ pnpm exec tsrs -p . --fast --noLazyMembers      # fast 预设 + eager 类型成�
       <H2 id="cli-unsupported">不支持的命令</H2>
       <Callout kind="warn">
         <p>
-          <code>--init</code> 与 <code>--showConfig</code> 未移植：向 stderr 打印{' '}
-          <code>error: --init is not supported by tsrs.</code>（或 <code>--showConfig</code>{' '}
-          的同款消息）并以状态码 5 退出， 不会写出任何文件。<code>--help</code>{' '}
+          <code>--init</code> 仍未移植：向 stderr 打印{' '}
+          <code>error: --init is not supported by tsrs.</code> 并以状态码 5 退出，不会写出任何文件。
+          <code>--showConfig</code> 自 7.1.0-beta.tsrs4 起支持（#1041）：像 tsgo 一样打印解析后的
+          配置，包含隐含选项与 <code>${'{configDir}'}</code> 路径，21 个 <code>tsc/showConfig</code>{' '}
+          场景与 <code>configDir-template-showConfig</code> 的基线逐字节一致。<code>--help</code>{' '}
           只给出版本行与简短用法；<code>--locale</code> 被接受但消息始终为英文；{' '}
           <code>--generateTrace</code> 警告 “Failed to start tracing” 后照常检查。详见{' '}
           <Ext href="https://github.com/oxc-project/tsrs/blob/main/docs/DEFAULTS.md">DEFAULTS</Ext>

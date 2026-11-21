@@ -15,7 +15,7 @@ export function Lint() {
       </p>
       <p>
         规则覆盖：实现钉住的 tsgolint 的 <strong>61/61 条 type-aware 规则</strong>
-        ，基线语料以重建后的 tsgolint <strong>v7.0.2005</strong> 为参考，导入的 8,043 个 active case
+        ，基线语料以重建后的 tsgolint <strong>v7.0.2005</strong> 为参考，导入的 8,047 个 active case
         输入通过，上游显式 skip 28 个。
       </p>
 
@@ -37,7 +37,7 @@ export function Lint() {
       <H2 id="lint-typecheck">--type-check 的语义</H2>
       <p>
         <code>--type-check</code> 让同一次运行顺带报告编译器类型错误。
-        <strong>当前版本（7.1.0-beta.tsrs2）的语义是：只报告 Oxlint 选定用于 lint 的文件</strong>
+        <strong>当前版本（7.1.0-beta.tsrs4）的语义是：只报告 Oxlint 选定用于 lint 的文件</strong>
         ，与 tsgolint 一致——README 的原话是「Oxlint 不 lint 的文件不会被类型检查，
         因此请保留一次单独的 <code>tsrs --noEmit</code> 来检查整个 tsconfig
         program」。范围历史上调整过几次：
@@ -57,12 +57,26 @@ export function Lint() {
           规则或命令行路径排除的文件同样不再让 lint 失败，
           没有源文件位置的全局诊断（例如缺失全局类型）也不再报告。
         </li>
+        <li>
+          7.1.0-beta.tsrs3（#959、#1006）：<code>--type-check</code> 不再报告 suggestion
+          诊断——Oxlint 会把 suggestion 当错误，导致 Effect 等插件的语言服务 suggestion 让 lint
+          失败；tsc 会失败的 message 诊断（如 TS1450）仍然报告。类型错误的描述 带上与{' '}
+          <code>tsc</code> 相同的消息链（每条消息一行），<code>tsconfig-error</code>{' '}
+          报告把消息链放进 help 文本。
+        </li>
+        <li>
+          7.1.0-beta.tsrs4（#1056）：每个 program 的全局诊断重新在其 tsconfig 上各报告一次，与
+          tsgolint #1270 一致；<code>declaration</code> 或 <code>composite</code>{' '}
+          开启时同时报告声明诊断。
+        </li>
       </ul>
       <Callout kind="info">
         <p>
           因此 <code>--type-check</code> 不能替代一次全量类型检查：Oxlint 不 lint
-          的文件（被忽略的、生成的、声明文件） 以及全局诊断只有 <code>tsrs --noEmit</code> 或{' '}
-          <code>tsrs --build</code> 才会检查。CI 里请保留一条单独的 <code>tsrs --noEmit</code>
+          的文件（被忽略的、生成的、声明文件）仍只有 <code>tsrs --noEmit</code> 或{' '}
+          <code>tsrs --build</code> 才会检查；整个 program
+          的其余文件也只提供类型、不报告自己的诊断。 CI 里请保留一条单独的{' '}
+          <code>tsrs --noEmit</code>
           。列表里不属于任何 tsconfig 的文件会在带 linter 默认编译选项的推断 program 中被 lint{' '}
           并检查。
         </p>

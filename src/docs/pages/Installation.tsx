@@ -6,28 +6,28 @@ export function Installation() {
     <>
       <H2 id="install-pm">按包管理器安装</H2>
       <p>
-        上游发布同时存在两个 dist-tag：<code>latest</code> 仍是 <code>0.25.0-ts7.1.0-beta</code>，
-        而 TypeScript 对齐版本的预发布（<code>7.1.0-beta.tsrs2</code>）发布到 <code>next</code>。
-        想跟随最新预发布就用 <code>@next</code>，想固定到具体版本就写完整版本号；裸装（不带
-        tag）得到的是 <code>latest</code> 上的 0.25.0。
+        npm 的 <code>latest</code> 标签自 <code>7.1.0-beta.tsrs3</code> 起直接指向 TypeScript
+        对齐版本，当前为 <code>7.1.0-beta.tsrs4</code>，取代旧的 <code>0.25.0-ts7.1.0-beta</code>{' '}
+        成为默认安装；早先的 <code>@next</code> 预发布通道已经退役。裸装得到最新发布，需要可复现
+        构建时写完整版本号。
       </p>
       <CodeBlock
         lang="sh"
         code={`# pnpm
-pnpm add -D tsrs@next
-pnpm add -D tsrs@7.1.0-beta.tsrs2
+pnpm add -D tsrs
+pnpm add -D tsrs@7.1.0-beta.tsrs4
 
 # npm
-npm i -D tsrs@next
-npm i -D tsrs@7.1.0-beta.tsrs2
+npm i -D tsrs
+npm i -D tsrs@7.1.0-beta.tsrs4
 
 # bun
-bun add -d tsrs@next
-bun add -d tsrs@7.1.0-beta.tsrs2
+bun add -d tsrs
+bun add -d tsrs@7.1.0-beta.tsrs4
 
 # yarn
-yarn add -D tsrs@next
-yarn add -D tsrs@7.1.0-beta.tsrs2`}
+yarn add -D tsrs
+yarn add -D tsrs@7.1.0-beta.tsrs4`}
       />
       <p>上游文档里的命令一律以 pnpm 书写；其他包管理器是同义命令。</p>
 
@@ -42,7 +42,7 @@ yarn add -D tsrs@7.1.0-beta.tsrs2`}
       <p>
         不想把 tsrs 装进项目时，可以用 <code>pnpm dlx</code> 直接运行：
       </p>
-      <Cmd text="pnpm dlx tsrs@7.1.0-beta.tsrs2 -p ." />
+      <Cmd text="pnpm dlx tsrs@7.1.0-beta.tsrs4 -p ." />
 
       <H2 id="install-platforms">原生平台包</H2>
       <p>
@@ -80,7 +80,7 @@ yarn add -D tsrs@7.1.0-beta.tsrs2`}
       <Cmd text="TSRS_BINARY=$PWD/target/debug/tsrs pnpm exec tsrs --version" />
       <p>
         <code>tsrs --version</code> 会同时报告 TypeScript 兼容版本与 tsrs 版本，例如{' '}
-        <code>Version 7.1.0-beta (tsrs 7.1.0-beta.tsrs2, microsoft/TypeScript@3e9236361fa9)</code>。
+        <code>Version 7.1.0-beta (tsrs 7.1.0-beta.tsrs4, microsoft/TypeScript@3e9236361fa9)</code>。
       </p>
 
       <H2 id="install-wasm">没有原生二进制的平台</H2>

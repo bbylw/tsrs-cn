@@ -10,7 +10,7 @@ export function NodeApi() {
         客户端代码来自 TypeScript 7 的 <code>packages/typescript</code>，按上游相同的子路径导出，
         编译器与 SDK 都跟随 <code>3e9236361fa9</code>（TypeScript 7.1 beta）。
       </p>
-      <Cmd text="pnpm add -D tsrs@7.1.0-beta.tsrs2" />
+      <Cmd text="pnpm add -D tsrs@7.1.0-beta.tsrs4" />
       <p>
         <code>require("tsrs")</code> 导出 <code>version</code>、<code>typescriptVersion</code> 和{' '}
         <code>typescriptCommit</code>。
