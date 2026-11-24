@@ -7,7 +7,7 @@ export function Installation() {
       <H2 id="install-pm">按包管理器安装</H2>
       <p>
         npm 的 <code>latest</code> 标签自 <code>7.1.0-beta.tsrs3</code> 起直接指向 TypeScript
-        对齐版本，当前为 <code>7.1.0-beta.tsrs4</code>，取代旧的 <code>0.25.0-ts7.1.0-beta</code>{' '}
+        对齐版本，当前为 <code>7.1.0-beta.tsrs5</code>，取代旧的 <code>0.25.0-ts7.1.0-beta</code>{' '}
         成为默认安装；早先的 <code>@next</code> 预发布通道已经退役。裸装得到最新发布，需要可复现
         构建时写完整版本号。
       </p>
@@ -15,19 +15,19 @@ export function Installation() {
         lang="sh"
         code={`# pnpm
 pnpm add -D tsrs
-pnpm add -D tsrs@7.1.0-beta.tsrs4
+pnpm add -D tsrs@7.1.0-beta.tsrs5
 
 # npm
 npm i -D tsrs
-npm i -D tsrs@7.1.0-beta.tsrs4
+npm i -D tsrs@7.1.0-beta.tsrs5
 
 # bun
 bun add -d tsrs
-bun add -d tsrs@7.1.0-beta.tsrs4
+bun add -d tsrs@7.1.0-beta.tsrs5
 
 # yarn
 yarn add -D tsrs
-yarn add -D tsrs@7.1.0-beta.tsrs4`}
+yarn add -D tsrs@7.1.0-beta.tsrs5`}
       />
       <p>上游文档里的命令一律以 pnpm 书写；其他包管理器是同义命令。</p>
 
@@ -42,7 +42,7 @@ yarn add -D tsrs@7.1.0-beta.tsrs4`}
       <p>
         不想把 tsrs 装进项目时，可以用 <code>pnpm dlx</code> 直接运行：
       </p>
-      <Cmd text="pnpm dlx tsrs@7.1.0-beta.tsrs4 -p ." />
+      <Cmd text="pnpm dlx tsrs@7.1.0-beta.tsrs5 -p ." />
 
       <H2 id="install-platforms">原生平台包</H2>
       <p>
@@ -80,7 +80,7 @@ yarn add -D tsrs@7.1.0-beta.tsrs4`}
       <Cmd text="TSRS_BINARY=$PWD/target/debug/tsrs pnpm exec tsrs --version" />
       <p>
         <code>tsrs --version</code> 会同时报告 TypeScript 兼容版本与 tsrs 版本，例如{' '}
-        <code>Version 7.1.0-beta (tsrs 7.1.0-beta.tsrs4, microsoft/TypeScript@3e9236361fa9)</code>。
+        <code>Version 7.1.0-beta (tsrs 7.1.0-beta.tsrs5, microsoft/TypeScript@3e9236361fa9)</code>。
       </p>
 
       <H2 id="install-wasm">没有原生二进制的平台</H2>

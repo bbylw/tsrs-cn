@@ -113,8 +113,8 @@ export const PAGES: DocPage[] = [
   {
     slug: 'lint',
     title: 'Type-aware lint',
-    keywords: 'lint oxlint tsrs-lint tsgolint 规则 type-aware type-check 61',
-    lead: 'tsrs-lint 替代 tsgolint 接入 Oxlint：61 条规则，lint 与类型检查一次跑完。',
+    keywords: 'lint oxlint tsrs-lint tsgolint 规则 type-aware type-check 62',
+    lead: 'tsrs-lint 替代 tsgolint 接入 Oxlint：62 条规则，lint 与类型检查一次跑完。',
     source: blob('tools/tsgolint/README.md'),
     Component: Lint,
   },

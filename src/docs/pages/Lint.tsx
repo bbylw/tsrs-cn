@@ -14,9 +14,10 @@ export function Lint() {
         <code>tsrs-lint</code> 并取代 oxlint-tsgolint。
       </p>
       <p>
-        规则覆盖：实现钉住的 tsgolint 的 <strong>61/61 条 type-aware 规则</strong>
-        ，基线语料以重建后的 tsgolint <strong>v7.0.2005</strong> 为参考，导入的 8,047 个 active case
-        输入通过，上游显式 skip 28 个。
+        规则覆盖：实现钉住的 tsgolint 的 <strong>62/62 条 type-aware 规则</strong>
+        （7.1.0-beta.tsrs5 新增 <code>no-unsafe-class-instance-assignment</code>
+        ），基线语料以重建后的 tsgolint <strong>v7.0.2005</strong> 为参考，导入的 8,211 个 active
+        case 输入通过，上游显式 skip 28 个。
       </p>
 
       <H2 id="lint-setup">接入 Oxlint</H2>
@@ -37,7 +38,7 @@ export function Lint() {
       <H2 id="lint-typecheck">--type-check 的语义</H2>
       <p>
         <code>--type-check</code> 让同一次运行顺带报告编译器类型错误。
-        <strong>当前版本（7.1.0-beta.tsrs4）的语义是：只报告 Oxlint 选定用于 lint 的文件</strong>
+        <strong>当前版本（7.1.0-beta.tsrs5）的语义是：只报告 Oxlint 选定用于 lint 的文件</strong>
         ，与 tsgolint 一致——README 的原话是「Oxlint 不 lint 的文件不会被类型检查，
         因此请保留一次单独的 <code>tsrs --noEmit</code> 来检查整个 tsconfig
         program」。范围历史上调整过几次：

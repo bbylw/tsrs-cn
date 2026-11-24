@@ -5,7 +5,7 @@ export function Status() {
     <>
       <H2 id="status-now">当前状态</H2>
       <p>
-        最新发布是 <strong>7.1.0-beta.tsrs4</strong>（2026-11-20）。TypeScript 对齐版本从{' '}
+        最新发布是 <strong>7.1.0-beta.tsrs5</strong>（2026-11-23）。TypeScript 对齐版本从{' '}
         <strong>7.1.0-beta.tsrs3</strong>（2026-11-18）起直接发布到 npm 的 <code>latest</code>{' '}
         标签， 取代 <code>0.25.0-ts7.1.0-beta</code> 成为默认安装；更早的 tsrs1 只到达
         crates.io，tsrs2 是首个 TypeScript 对齐版本的 npm 发布（当时仍在 <code>next</code> 通道）。
@@ -16,7 +16,7 @@ export function Status() {
         rows={[
           [
             'latest',
-            '7.1.0-beta.tsrs4',
+            '7.1.0-beta.tsrs5',
             'TypeScript 对齐版本，裸装默认得到；tsrs3 起直接发布到这里',
           ],
           ['next', '不再发布', '旧通道，主包最后指向 7.1.0-beta.tsrs2，tsrs3 起不再维护'],
@@ -25,7 +25,7 @@ export function Status() {
       <Callout kind="info">
         <p>
           <code>ci(release): publish npm packages to latest (#1014)</code> 于 2026-11-17
-          落地，随后发布的 tsrs3 直接进入 <code>latest</code>，tsrs4
+          落地，随后发布的 tsrs3 直接进入 <code>latest</code>，tsrs4、tsrs5
           跟进。需要确定版本时仍建议写精确 版本号，不要把标签走向写进脚本或文档断言里。
         </p>
       </Callout>
@@ -117,6 +117,11 @@ export function Status() {
             '7.1.0-beta.tsrs4',
             '2026-11-20',
             '支持 --showConfig（21 个 showConfig 场景基线逐字节一致）；--type-check 恢复报告全局与声明诊断；模块解析、增量与构建/watch 的一批 panic 与路径修复',
+          ],
+          [
+            '7.1.0-beta.tsrs5',
+            '2026-11-23',
+            '新增 no-unsafe-class-instance-assignment 规则（共 62 条 type-aware 规则）；修复一批 API/CLI/build/LSP 路径解析与 source map mapRoot 问题；修复两条 lint 规则边界行为',
           ],
         ]}
       />

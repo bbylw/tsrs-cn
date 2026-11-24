@@ -64,11 +64,11 @@ describe('bench data', () => {
     }
   });
 
-  it('carries six conformance evidence cards and eight releases', () => {
+  it('carries six conformance evidence cards and nine releases', () => {
     expect(CONFORMANCE).toHaveLength(6);
-    expect(RELEASES).toHaveLength(8);
-    expect(RELEASES[0].v).toBe('7.1.0-beta.tsrs4');
-    expect(RELEASES[1].v).toBe('7.1.0-beta.tsrs3');
+    expect(RELEASES).toHaveLength(9);
+    expect(RELEASES[0].v).toBe('7.1.0-beta.tsrs5');
+    expect(RELEASES[1].v).toBe('7.1.0-beta.tsrs4');
   });
 });
 

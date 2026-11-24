@@ -12,7 +12,7 @@ export function Wasm() {
       </p>
       <CodeBlock
         lang="sh"
-        code={`pnpm add @tsrs/wasm@7.1.0-beta.tsrs4
+        code={`pnpm add @tsrs/wasm@7.1.0-beta.tsrs5
 # 或者不带 tag，从 latest 安装同一版本：
 pnpm add @tsrs/wasm`}
       />

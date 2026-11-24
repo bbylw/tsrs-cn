@@ -116,7 +116,7 @@ export function FastLint() {
               <div className="px-5 py-4">
                 <Cmd compact wrap text="TSRS_FAST=1 pnpm exec oxlint --type-aware --type-check" />
                 <p className="lead-pretty mt-3 text-[13px] leading-relaxed text-ash">
-                  tsrs-lint 实现 tsgolint 的全部 61 条规则，Oxlint ≥ 1.92.0 自动发现它。下面是
+                  tsrs-lint 实现 tsgolint 的全部 62 条规则，Oxlint ≥ 1.92.0 自动发现它。下面是
                   Outline 的 7 条规则、8 核下的墙钟时间：
                 </p>
 

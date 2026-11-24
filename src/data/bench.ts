@@ -464,8 +464,13 @@ export const CONFORMANCE = [
   },
 ];
 
-/** Recent releases (GitHub releases API, fetched 2026-11-21). */
+/** Recent releases (GitHub releases API, fetched 2026-11-24). */
 export const RELEASES = [
+  {
+    v: '7.1.0-beta.tsrs5',
+    date: '2026-11-23',
+    note: '新增 no-unsafe-class-instance-assignment 规则（共 62 条 type-aware 规则）；修复一批 API/CLI/build/LSP 路径解析与 source map mapRoot 问题；修复两条 lint 规则边界行为。',
+  },
   {
     v: '7.1.0-beta.tsrs4',
     date: '2026-11-20',

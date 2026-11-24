@@ -24,8 +24,8 @@ export function Introduction() {
 
       <H2 id="intro-status">当前状态</H2>
       <p>
-        截至同步日期（2026-11-21），上游最新发布为 <code>7.1.0-beta.tsrs4</code>
-        （2026-11-20）。npm 的 <code>latest</code> 标签自 <code>7.1.0-beta.tsrs3</code>
+        截至同步日期（2026-11-24），上游最新发布为 <code>7.1.0-beta.tsrs5</code>
+        （2026-11-23）。npm 的 <code>latest</code> 标签自 <code>7.1.0-beta.tsrs3</code>
         （2026-11-18）起指向 TypeScript 对齐版本，取代 <code>0.25.0-ts7.1.0-beta</code>{' '}
         成为默认安装，旧的 <code>next</code> 通道不再发布。tsrs 目标 TypeScript <code>7.1</code>
         ，源码钉在 <code>microsoft/TypeScript@3e9236361fa9</code>（TypeScript 7.1.0-beta）。

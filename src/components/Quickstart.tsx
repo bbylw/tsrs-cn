@@ -233,7 +233,7 @@ export function Quickstart() {
             <Cmd compact text={addCmd(pm)} />
             <p className="lead-pretty mt-4 text-sm leading-relaxed text-ash">
               <code className="num text-molten">latest</code> 指向
-              7.1.0-beta.tsrs4。包本身只是入口， 二进制按平台分发：macOS arm64/x64、Linux
+              7.1.0-beta.tsrs5。包本身只是入口， 二进制按平台分发：macOS arm64/x64、Linux
               x64/arm64（gnu 与 musl）、Windows x64/arm64，共八个原生包。无原生包平台用{' '}
               <b className="text-fog">@tsrs/wasm</b> 兜底。
             </p>

@@ -332,7 +332,7 @@ export function Hero() {
             className="stage-in num mt-5 text-xs text-ash"
             style={{ '--sd': '400ms' } as CSSProperties}
           >
-            7.1.0-beta.tsrs4 · Apache-2.0 · 目标 TypeScript 7.1 · 19/19 基准零差异
+            7.1.0-beta.tsrs5 · Apache-2.0 · 目标 TypeScript 7.1 · 19/19 基准零差异
           </p>
         </div>
 

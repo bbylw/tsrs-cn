@@ -126,7 +126,7 @@ export function Nav({ docs = false }: { docs?: boolean }) {
           <span className="text-lg font-bold tracking-tight">
             ts<span className="fire-text">rs</span>
           </span>
-          <span className="num hidden text-[11px] text-ash sm:inline">7.1.0-beta.tsrs4</span>
+          <span className="num hidden text-[11px] text-ash sm:inline">7.1.0-beta.tsrs5</span>
         </a>
 
         <nav

@@ -45,7 +45,7 @@ export function Editors() {
         在 <strong>Windows</strong> 上应指向原生平台包的根目录。把与 <code>tsrs</code>{' '}
         同版本的平台包加为直接可选依赖， 升级时两者保持同版本：
       </p>
-      <Cmd text="pnpm add -O --save-exact @tsrs/win32-x64@7.1.0-beta.tsrs4" />
+      <Cmd text="pnpm add -O --save-exact @tsrs/win32-x64@7.1.0-beta.tsrs5" />
       <CodeBlock
         lang="jsonc"
         code={`{
